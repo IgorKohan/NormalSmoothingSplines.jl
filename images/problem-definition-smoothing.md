@@ -1,4 +1,4 @@
-This Julia package implements the normal splines method for solving following a function approximation problem:
+This Julia package implements the normal splines method for solving the following function approximation problem:
 
 *Problem:* Given points ``\{p_i, p_i \in R^n\}_{i=1}^{n_1}``, ``\{\overline p_i, \overline p_i \in R^n\}_{i=1}^{n_2}``, ``\{s_j, s_j \in R^n\}_{j=1}^{n_3}``, ``\{\overline s_j, \overline s_j \in R^n\}_{j=1}^{n_4}`` and sets of unit vectors ``\{e_j, e_j \in R^n\}_{j=1}^{n_3}``, ``\{\overline e_j, \overline e_j \in R^n\}_{j=1}^{n_4}`` find a function ``f`` such that
 
