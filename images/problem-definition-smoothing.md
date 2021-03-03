@@ -17,7 +17,7 @@ This Julia package implements the normal splines method for solving the followin
 ``` 
 where ``\frac{ \partial{f} }{ \partial{e} }(s) = \nabla f(s) \cdot e = \sum _{k=1}^{n}  \frac{ \partial{f} }{ \partial{x_k} } (s) e_{k}`` is a directional derivative of ``f`` at the point ``s`` in the direction of ``e``.
 
-We assume that function ``f`` is an element of the Bessel Potential space ``H^s_\varepsilon (R^n)`` which is defined as:
+We assume that function ``f`` is an element of the Bessel potential space ``H^s_\varepsilon (R^n)`` which is defined as:
 
 ```math
    H^s_\varepsilon (R^n) = \left\{ \varphi | \varphi \in S' ,
@@ -26,7 +26,7 @@ We assume that function ``f`` is an element of the Bessel Potential space ``H^s_
 ```
 where ``| \cdot |`` is the Euclidean norm, ``S'  (R^n)`` is space of L. Schwartz tempered distributions, parameter ``s`` may be treated as a fractional differentiation order and ``\mathcal F [\varphi ]`` is a Fourier transform of the ``\varphi``. The parameter ``\varepsilon`` can be considered as a "scaling parameter", it allows to control approximation properties of the normal spline which usually are getting better with smaller values of ``\varepsilon``, also it can be used to reduce the ill-conditioness of the related computational problem (in traditional theory ``\varepsilon = 1``).
 
-The Bessel Potential space ``H^s_\varepsilon (R^n)`` is a  Reproducing kernel Hilbert space, an element ``f`` of that space can be treated as a ``r``-times continuously differentiable function.
+The Bessel potential space ``H^s_\varepsilon (R^n)`` is a  Reproducing kernel Hilbert space, an element ``f`` of that space can be treated as a ``r``-times continuously differentiable function.
 
 The normal splines method consists in finding a solution of system (1) having minimal norm in Hilbert space ``H^s_\varepsilon (R^n)``, thus an uniform smoothing normal spline ``\sigma`` is defined as follows:
 
@@ -37,7 +37,7 @@ The normal splines method consists in finding a solution of system (1) having mi
 
 The normal splines method is based on the following functional analysis results:
 
-* Bessel Potential space embedding theorem
+* Bessel potential space embedding theorem
 * The Riesz representation theorem for Hilbert spaces
 * Reproducing kernel properties 
 
