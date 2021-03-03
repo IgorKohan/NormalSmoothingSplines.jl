@@ -1,4 +1,4 @@
-This Julia package implements the normal splines method for solving the following function approximation problem:
+This Julia package implements the normal splines method for solving the following approximation problem:
 
 *Problem:* Given points ``\{p_i, p_i \in R^n\}_{i=1}^{n_1}``, ``\{\overline p_i, \overline p_i \in R^n\}_{i=1}^{n_2}``, ``\{s_j, s_j \in R^n\}_{j=1}^{n_3}``, ``\{\overline s_j, \overline s_j \in R^n\}_{j=1}^{n_4}`` and sets of unit vectors ``\{e_j, e_j \in R^n\}_{j=1}^{n_3}``, ``\{\overline e_j, \overline e_j \in R^n\}_{j=1}^{n_4}`` find a function ``f`` such that
 
@@ -12,7 +12,7 @@ This Julia package implements the normal splines method for solving the followin
 & \frac{ \partial{f} }{ \partial{e_j} }(s_j) =  v_j \, , \quad  j = 1, 2, \dots, n_3 \, ,
 \\  
 &  \underline v_j \le \frac{ \partial{f} }{ \partial{\overline e_j} } (\overline s_j) \le \overline v_j \, , \quad  j = 1, 2, \dots, n_4 \, , \\
-& n_1 \ge 0 \, , \  n_2 \ge 0 \, , \ n_3 \ge 0 \, , \  n_4 \ge 0 \, .
+& n_1 \ge 0 \, , \  n_2 \ge 0 \, , \ n_3 \ge 0 \, , \  n_4 \ge 0 \, ,
 \end{aligned}
 ``` 
 where ``\frac{ \partial{f} }{ \partial{e} }(s) = \nabla f(s) \cdot e = \sum _{k=1}^{n}  \frac{ \partial{f} }{ \partial{x_k} } (s) e_{k}`` is a directional derivative of ``f`` at the point ``s`` in the direction of ``e``.
