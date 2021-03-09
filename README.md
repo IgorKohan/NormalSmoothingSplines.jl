@@ -4,6 +4,7 @@
 
 # Normal Uniform Smoothing Splines
 
+(project is under development)
 
 ![Problem definition](/images/problem-definition-smoothing.png)
 
