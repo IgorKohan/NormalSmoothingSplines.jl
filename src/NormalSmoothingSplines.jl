@@ -1,3 +1,65 @@
+module NormalSmoothingSplines
+
+#### Inteface deinition
+export prepare, construct, interpolate
+export evaluate, evaluate_one, evaluate_gradient
+export NormalSpline, RK_H0, RK_H1, RK_H2
+export get_epsilon, estimate_epsilon, get_cond, estimate_cond
+export estimate_accuracy
+# -- 1D case --
+export evaluate_derivative
+# --
+####
+#include("./examples/Main.jl")
+###
+
+using LinearAlgebra
+
+abstract type ReproducingKernel end
+abstract type ReproducingKernel_0 <: ReproducingKernel end
+abstract type ReproducingKernel_1 <: ReproducingKernel_0 end
+abstract type ReproducingKernel_2 <: ReproducingKernel_1 end
+
+abstract type AbstractSpline end
+
+@doc raw"
+`struct NormalSpline{T, RK} <: AbstractSpline where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+Define a structure containing full information of a normal spline
+# Fields
+- `_kernel`: a reproducing kernel spline was built with
+- `_compression`: factor of transforming the original node locations into unit hypercube
+- `_nodes`: transformed function value nodes
+- `_values`: function values at interpolation nodes
+- `_d_nodes`: transformed function directional derivative nodes
+- `_es`: normalized derivative directions
+- `_d_values`: function directional derivative values
+- `_min_bound`: minimal bounds of the original node locations area
+- `_gram`: Gram matrix of the problem
+- `_chol`: Cholesky factorization of the Gram matrix
+- `_mu`: spline coefficients
+- `_cond`: estimation of the Gram matrix condition number
+"
+struct NormalSpline{T, RK} <: AbstractSpline where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    _kernel::RK
+    _compression::T
+    _nodes::Union{Matrix{T}, Nothing}
+    _values::Union{Vector{T}, Nothing}
+    _d_nodes::Union{Matrix{T}, Nothing}
+    _es::Union{Matrix{T}, Nothing}
+    _d_values::Union{Vector{T}, Nothing}
+    _min_bound::Union{Vector{T}, Nothing}
+    _gram::Union{Matrix{T}, Nothing}
+    _chol::Union{Cholesky{T, Matrix{T}}, Nothing}
+    _mu::Union{Vector{T}, Nothing}
+    _cond::T
+end
+
+include("./ReproducingKernels.jl")
+include("./GramMatrix.jl")
+include("./Utils.jl")
+include("./Interpolate.jl")
+
 """
 `prepare(nodes::Matrix{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
