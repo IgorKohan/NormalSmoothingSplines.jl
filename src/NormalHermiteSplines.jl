@@ -4,14 +4,14 @@ module NormalHermiteSplines
 export prepare, construct, interpolate
 export evaluate, evaluate_one, evaluate_gradient
 export NormalSpline, RK_H0, RK_H1, RK_H2
-export get_epsilon, estimate_epsilon, get_cond
+export get_epsilon, estimate_epsilon, get_cond, estimate_cond
 export estimate_accuracy
 # -- 1D case --
 export evaluate_derivative
 # --
 ####
-
-include("./examples/Main.jl")
+#include("./examples/Main.jl")
+###
 
 using LinearAlgebra
 
@@ -57,6 +57,7 @@ end
 
 include("./ReproducingKernels.jl")
 include("./GramMatrix.jl")
+include("./Utils.jl")
 include("./Interpolate.jl")
 
 """
@@ -347,17 +348,17 @@ function estimate_epsilon(nodes::Matrix{T},
 end
 
 """
-`get_cond(spline::NormalSpline{T, RK}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+`estimate_cond(spline::NormalSpline{T, RK}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Get an estimation of the Gram matrix condition number.
+Get an estimation of the Gram matrix condition number. It needs the `spline` object is prepared and requires O(N^2) operations.
 (C. Brás, W. Hager, J. Júdice, An investigation of feasible descent algorithms for estimating the condition number of a matrix. TOP Vol.20, No.3, 2012.)
 # Arguments
 - `spline`: the `NormalSpline` object returned by `prepare`, `construct` or `interpolate` function.
 
 Return: an estimation of the Gram matrix condition number.
 """
-function get_cond(spline::NormalSpline{T, RK}
-                 ) where {T <: AbstractFloat, RK <: ReproducingKernel}
+function estimate_cond(spline::NormalSpline{T, RK}
+                      ) where {T <: AbstractFloat, RK <: ReproducingKernel}
     return spline._cond
 end
 
@@ -581,6 +582,54 @@ function estimate_epsilon(nodes::Vector{T},
                          ) where {T <: AbstractFloat, RK <: ReproducingKernel_1}
     ε = _estimate_epsilon(Matrix(nodes'), Matrix(d_nodes'), kernel)
     return ε
+end
+
+"""
+`get_cond(nodes::Matrix{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+Get a value of the Gram matrix spectral condition number. It is obtained by means of the matrix SVD decomposition and requires ``O(N^3)`` operations.
+# Arguments
+- `nodes`: The function value nodes.
+           This should be an `n×n_1` matrix, where `n` is dimension of the sampled space and
+           `n_1` is the number of function value nodes. It means that each column in the matrix defines one node.
+- `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
+            It must be a struct object of the following type:
+              `RK_H0` if the spline is constructing as a continuous function,
+              `RK_H1` if the spline is constructing as a differentiable function,
+              `RK_H2` if the spline is constructing as a twice differentiable function.
+
+Return: a value of the Gram matrix spectral condition number.
+"""
+function get_cond(nodes::Matrix{T}, kernel::RK) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+  return _get_cond(nodes, kernel)
+end
+
+"""
+`get_cond(nodes::Matrix{T}, d_nodes::Matrix{T}, es::Matrix{T}, kernel::RK = RK_H1()) where {T <: AbstractFloat, RK <: ReproducingKernel_1}`
+
+Get a value of the Gram matrix spectral condition number. It is obtained by means of the matrix SVD decomposition and requires ``O(N^3)`` operations.
+# Arguments
+- `nodes`: The function value nodes.
+           This should be an `n×n_1` matrix, where `n` is dimension of the sampled space and
+           `n_1` is the number of function value nodes.
+            It means that each column in the matrix defines one node.
+- `d_nodes`: The function directional derivatives nodes.
+             This should be an `n×n_2` matrix, where `n` is dimension of the sampled space and
+             `n_2` is the number of function directional derivative nodes.
+- `es`: Directions of the function directional derivatives.
+        This should be an `n×n_2` matrix, where `n` is dimension of the sampled space and
+        `n_2` is the number of function directional derivative nodes.
+        It means that each column in the matrix defines one direction of the function directional derivative.
+- `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
+            It must be a struct object of the following type:
+              `RK_H1` if the spline is constructing as a differentiable function,
+              `RK_H2` if the spline is constructing as a twice differentiable function.
+
+Return: a value of the Gram matrix spectral condition number.
+"""
+function get_cond(nodes::Matrix{T}, d_nodes::Matrix{T}, es::Matrix{T}, kernel::RK = RK_H1()
+                 ) where {T <: AbstractFloat, RK <: ReproducingKernel_1}
+    return _get_cond(nodes, d_nodes, es, kernel)
 end
 
 end # module

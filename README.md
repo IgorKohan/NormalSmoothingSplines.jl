@@ -2,7 +2,7 @@
   <img src="/images/logo.png" width="400" alt="Normal Splines">
 </div>
 
-# Multivariate Normal Hermite-Birkhoff Interpolating Splines in Julia
+# Multivariate Normal Hermite-Birkhoff Uniform Smoothing Splines in Julia
 
 (project is under development)
 
