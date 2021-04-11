@@ -14,4 +14,6 @@ makedocs(
 
 deploydocs(
     repo = "github.com/IgorKohan/NormalSmoothingSplines.jl.git",
+    devurl = "v0.1.0",
+    versions = ["stable" => "v^", "v#.#.#"],	
 )
