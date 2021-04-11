@@ -63,8 +63,8 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Documenter: doctest
-            using NormalHermiteSplines
-            doctest(NormalHermiteSplines)' # change NormalHermiteSplines to the name of your package
+            using NormalSmoothingSplines
+            doctest(NormalSmoothingSplines)' 
       - run: julia --project=docs docs/make.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
