@@ -1,7 +1,7 @@
-using Documenter, NormalHermiteSplines
+using Documenter, NormalSmoothingSplines
 
 makedocs(
-    sitename = "NormalHermiteSplines.jl",
+    sitename = "NormalSmoothingSplines.jl",
 	format = Documenter.HTML(prettyurls = get(ENV, "CI", nothing) == "true"),
 	authors = "Igor Kohanovsky",
     pages = [
@@ -13,6 +13,6 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/IgorKohan/NormalHermiteSplines.jl.git",
+    repo = "github.com/IgorKohan/NormalSmoothingSplines.jl.git",
 )
 
