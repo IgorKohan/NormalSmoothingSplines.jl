@@ -5,10 +5,13 @@
 # Multivariate Normal Hermite-Birkhoff Uniform Smoothing Splines in Julia
 
 (project is under development)
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://IgorKohan.github.io/NormalSmoothingSplines.jl/dev)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://IgorKohan.github.io/NormalSmoothingSplines.jl/stable)
+[![Build Status](https://travis-ci.com/IgorKohan/NormalSmoothingSplines.jl.svg?branch=master)](https://travis-ci.com/github/IgorKohan/NormalSmoothingSplines.jl)
+[![codecov](https://codecov.io/gh/IgorKohan/NormalSmoothingSplines.jl/branch/master/graph/badge.svg?token=ynsySRTggq)](https://codecov.io/gh/IgorKohan/NormalSmoothingSplines.jl)
+
 
 ![Problem definition](/images/problem-definition-smoothing.png)
-
-
 
 Further examples are given in documentation.  
 
@@ -16,7 +19,7 @@ The normal splines method for one-dimensional function interpolation and linear 
 
 ## Documentation
 
-For more information and explanation see [Documentation](https://igorkohan.github.io/NormalHermiteSplines.jl/stable/).
+For more information and explanation see [Documentation](https://igorkohan.github.io/NormalSmoothingSplines.jl/stable/).
 
 **References**
 
