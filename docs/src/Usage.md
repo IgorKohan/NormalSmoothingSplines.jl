@@ -18,14 +18,14 @@ by values of the function in nodes ``\{1, 2, 3, ..., 20\}`` (case A) and by valu
 ```@meta
 DocTestSetup = quote
     using Random
-    using NormalHermiteSplines
+    using NormalSmoothingSplines
 end
 ```
 
 A)
 
 ```@example A
-    using NormalHermiteSplines
+    using NormalSmoothingSplines
 
     x = collect(1.0:1.0:20)       # function nodes
     u = x.*0.0                    # function values in nodes
@@ -113,7 +113,7 @@ Construct spline by different function values in nodes and evaluate new spline a
 B)
 
 ```@example B
-    using NormalHermiteSplines
+    using NormalSmoothingSplines
 
     x = collect(1.0:1.0:20)       # function nodes
     u = x.*0.0                    # function values in nodes
@@ -190,7 +190,7 @@ C)
 
 Now let's interpolate function ``f(x)`` using a spline built with reproducing kernel RK_H0:
 ```@example C
-    using NormalHermiteSplines
+    using NormalSmoothingSplines
 
     x = collect(1.0:1.0:20)       # function nodes
     u = x.*0.0                    # function values in nodes
@@ -290,7 +290,7 @@ Following is the code example for case A:
 
 ```@example 2A
     using Random
-    using NormalHermiteSplines
+    using NormalSmoothingSplines
 
     # generating 100 uniform random nodes
     m = 100
@@ -403,7 +403,7 @@ Corresponding code example for case B:
 
 ```@example 2B
     using Random
-    using NormalHermiteSplines
+    using NormalSmoothingSplines
 
     function get_2D_border_nodes(m::Int)
         mat0 = [0.0 0.0; 0.0 1.0; 1.0 0.0; 1.0 1.0]'
@@ -621,5 +621,5 @@ significant_digits = estimate_accuracy(spline)
 ```
 Taking into account new `cond` and `significant_digits` values we decide of making further correction of the scaling parameter.
 
- For further information, see [Selecting a good value of the scaling parameter](https://igorkohan.github.io/NormalHermiteSplines.jl/stable/Parameter-Choice/).
+ For further information, see [Selecting a good value of the scaling parameter](https://igorkohan.github.io/NormalSmoothingSplines.jl/stable/Parameter-Choice/).
 
