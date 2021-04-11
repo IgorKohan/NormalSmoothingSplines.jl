@@ -14,5 +14,5 @@ makedocs(
 
 deploydocs(
     repo = "github.com/IgorKohan/NormalSmoothingSplines.jl.git",
+	devbranch = "main",
 )
-
