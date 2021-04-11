@@ -1,8 +1,8 @@
-using NormalHermiteSplines
+using NormalSmoothingSplines
 using DoubleFloats
 using Test
 
-@testset "NormalHermiteSplines.jl" begin
+@testset "NormalSmoothingSplines.jl" begin
 
 include("1D.jl")
 include("2D.jl")
