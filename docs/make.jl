@@ -7,6 +7,8 @@ makedocs(
     pages = [
 				"Home" => "index.md",
 				"Public API" => "Public-API.md",
+				"Example Usage" => "Usage.md",
+				"Normal Splines Method" => "Normal-Splines-Method.md",
 			]
 )
 

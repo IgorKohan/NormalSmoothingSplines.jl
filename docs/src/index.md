@@ -74,6 +74,8 @@ The normal splines method for one-dimensional function interpolation and linear 
 Pages = [
       "index.md",
       "Public-API.md",
+      "Usage.md",
+      "Normal-Splines-Method.md"
 ]
 Depth = 3
 ```

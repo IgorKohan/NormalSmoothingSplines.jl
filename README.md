@@ -9,9 +9,6 @@
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://IgorKohan.github.io/NormalSmoothingSplines.jl/dev)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://IgorKohan.github.io/NormalSmoothingSplines.jl/stable)
 [![CI](https://github.com/IgorKohan/NormalSmoothingSplines.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/IgorKohan/NormalSmoothingSplines.jl/actions/workflows/ci.yml)
-
-
-[![Build Status](https://travis-ci.com/IgorKohan/NormalSmoothingSplines.jl.svg?branch=master)](https://travis-ci.com/github/IgorKohan/NormalSmoothingSplines.jl)
 [![codecov](https://codecov.io/gh/IgorKohan/NormalSmoothingSplines.jl/branch/master/graph/badge.svg?token=ynsySRTggq)](https://codecov.io/gh/IgorKohan/NormalSmoothingSplines.jl)
 
 
