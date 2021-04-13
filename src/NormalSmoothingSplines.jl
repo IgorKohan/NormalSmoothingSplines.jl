@@ -203,7 +203,7 @@ end
 `smooth(nodes::Matrix{T}, nodes_b::Matrix{T}, values::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T},
         kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Prepare and construct the spline.
+Prepare and construct the smoothing spline.
 # Arguments
 - `nodes`: The function value nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space

@@ -6,7 +6,8 @@
 |:----------------------------------- |:-------------------------------------------------------------------------------------------------- |
 |```prepare```                        |Prepare the spline by constructing and factoring a Gram matrix of the interpolation problem.        |
 |```construct```                      |Construct the spline by calculating its coefficients.                                               |
-|```interpolate```                    |Prepare and construct the spline.                                                                   |
+|```interpolate```                    |Prepare and construct the interpolating spline.                                                     |
+|```smooth```                         |Prepare and construct the smoothing spline.                                                         |
 |```evaluate```                       |Evaluate the spline value at the required locations                                                 |
 |```evaluate_one```                   |Evaluate the spline value at the required location                                                  |
 |```evaluate_gradient```              |Evaluate gradient of the spline at the required location.                                           |
@@ -22,6 +23,7 @@
 prepare
 construct
 interpolate
+smooth
 evaluate
 evaluate_one
 evaluate_gradient
