@@ -80,7 +80,7 @@ include("./Smooth.jl")
 Prepare the spline by constructing and factoring a Gram matrix of the interpolation problem.
 Initialize the `NormalSpline` object.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space and
            `n_1` is the number of function value nodes. It means that each column in the matrix defines one node.
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
@@ -105,10 +105,10 @@ end
 Prepare the spline by constructing and factoring a Gram matrix of the interpolation problem.
 Initialize the `NormalSpline` object.
 # Arguments
-- `nodes`: The function value interpolation nodes.
+- `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space and
            `n_1` is the number of function value interpolation nodes. It means that each column in the matrix defines one node.
-- `nodes_b`: The function value approximation nodes.
+- `nodes_b`: function value approximation nodes.
           This should be an `n×n_1_b` matrix, where `n` is dimension of the sampled space and
           `n_1_b` is the number of function value approximation nodes. It means that each column in the matrix defines one node.
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
@@ -171,7 +171,7 @@ end
 
 Prepare and construct the spline.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space
            and `n_1` is the number of function value nodes.
            It means that each column in the matrix defines one node.
@@ -199,11 +199,11 @@ end
 
 Prepare and construct the smoothing spline.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space
            and `n_1` is the number of function value nodes.
            It means that each column in the matrix defines one node.
-- `nodes_b`: The function value approximation nodes.
+- `nodes_b`: function value approximation nodes.
         This should be an `n×n_1_b` matrix, where `n` is dimension of the sampled space and
         `n_1_b` is the number of function value approximation nodes. It means that each column in the matrix defines one node.
 - `values`: function values at interpolation nodes.
@@ -295,11 +295,11 @@ end
 Prepare the spline by constructing and factoring a Gram matrix of the interpolation problem.
 Initialize the `NormalSpline` object.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space and
            `n_1` is the number of function value nodes.
             It means that each column in the matrix defines one node.
-- `d_nodes`: The function directional derivatives nodes.
+- `d_nodes`: function directional derivatives nodes.
              This should be an `n×n_2` matrix, where `n` is dimension of the sampled space and
              `n_2` is the number of function directional derivative nodes.
 - `es`: Directions of the function directional derivatives.
@@ -347,12 +347,12 @@ end
 
 Prepare and construct the spline.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space
            and `n_1` is the number of function value nodes.
            It means that each column in the matrix defines one node.
 - `values`: function values at `nodes` nodes.
-- `d_nodes`: The function directional derivative nodes.
+- `d_nodes`: function directional derivative nodes.
             This should be an `n×n_2` matrix, where `n` is dimension of the sampled space and
             `n_2` is the number of function directional derivative nodes.
 - `es`: Directions of the function directional derivatives.
@@ -399,7 +399,7 @@ end
 Get the estimation of the 'scaling parameter' of Bessel Potential space the spline being built in.
 It coincides with the result returned by `get_epsilon` function.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space
            and `n_1` is the number of function value nodes.
            It means that each column in the matrix defines one node.
@@ -423,11 +423,11 @@ end
 Get an the estimation of the 'scaling parameter' of Bessel Potential space the spline being built in.
 It coincides with the result returned by `get_epsilon` function.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space
            and `n_1` is the number of function value nodes.
            It means that each column in the matrix defines one node.
-- `d_nodes`: The function directional derivative nodes.
+- `d_nodes`: function directional derivative nodes.
            This should be an `n×n_2` matrix, where `n` is dimension of the sampled space and
            `n_2` is the number of function directional derivative nodes.
 - `kernel`: reproducing kernel of Bessel potential space the normal spline will be constructed in.
@@ -481,7 +481,7 @@ end
 Prepare the 1D spline by constructing and factoring a Gram matrix of the interpolation problem.
 Initialize the `NormalSpline` object.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
               `RK_H0` if the spline is constructing as a continuous function,
@@ -503,7 +503,7 @@ end
 
 Prepare and construct the 1D spline.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space
            and `n_1` is the number of function value nodes.
            It means that each column in the matrix defines one node.
@@ -589,8 +589,8 @@ end
 Prepare the 1D normal spline by constructing and factoring a Gram matrix of the interpolation problem.
 Initialize the `NormalSpline` object.
 # Arguments
-- `nodes`: The function value nodes.
-- `d_nodes`: The function derivatives nodes.
+- `nodes`: function value interpolation nodes.
+- `d_nodes`: function derivatives nodes.
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
               `RK_H1` if the spline is constructing as a differentiable function,
@@ -614,9 +614,9 @@ end
 
 Prepare and construct the 1D spline.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
 - `values`: function values at `nodes` nodes.
-- `d_nodes`: The function derivative nodes.
+- `d_nodes`: function derivative nodes.
 - `d_values`: function derivative values at `d_nodes` nodes.
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
@@ -643,7 +643,7 @@ end
 Get an the estimation of the 'scaling parameter' of Bessel Potential space the spline being built in.
 It coincides with the result returned by `get_epsilon` function.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
               `RK_H0` if the spline is constructing as a continuous function,
@@ -665,8 +665,8 @@ end
 Get an the estimation of the 'scaling parameter' of Bessel Potential space the spline being built in.
 It coincides with the result returned by `get_epsilon` function.
 # Arguments
-- `nodes`: The function value nodes.
-- `d_nodes`: The function derivative nodes.
+- `nodes`: function value interpolation nodes.
+- `d_nodes`: function derivative nodes.
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
               `RK_H1` if the spline is constructing as a differentiable function,
@@ -687,7 +687,7 @@ end
 
 Get a value of the Gram matrix spectral condition number. It is obtained by means of the matrix SVD decomposition and requires ``O(N^3)`` operations.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space and
            `n_1` is the number of function value nodes. It means that each column in the matrix defines one node.
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
@@ -707,11 +707,11 @@ end
 
 Get a value of the Gram matrix spectral condition number. It is obtained by means of the matrix SVD decomposition and requires ``O(N^3)`` operations.
 # Arguments
-- `nodes`: The function value nodes.
+- `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space and
            `n_1` is the number of function value nodes.
             It means that each column in the matrix defines one node.
-- `d_nodes`: The function directional derivatives nodes.
+- `d_nodes`: function directional derivatives nodes.
              This should be an `n×n_2` matrix, where `n` is dimension of the sampled space and
              `n_2` is the number of function directional derivative nodes.
 - `es`: Directions of the function directional derivatives.
