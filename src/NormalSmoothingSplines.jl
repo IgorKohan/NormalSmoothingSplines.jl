@@ -175,12 +175,7 @@ Prepare and construct the spline.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space
            and `n_1` is the number of function value nodes.
            It means that each column in the matrix defines one node.
-- `nodes_b`: The function value approximation nodes.
-         This should be an `n×n_1_b` matrix, where `n` is dimension of the sampled space and
-         `n_1_b` is the number of function value approximation nodes. It means that each column in the matrix defines one node.
-- `values`: function values at `nodes` nodes.
-- `values_lb`: function lower bound values at approximation nodes
-- `values_ub`: function upper bound values at approximation nodes
+- `values`: function values at interpolation nodes.
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
               `RK_H0` if the spline is constructing as a continuous function,
@@ -208,7 +203,12 @@ Prepare and construct the smoothing spline.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space
            and `n_1` is the number of function value nodes.
            It means that each column in the matrix defines one node.
-- `values`: function values at `nodes` nodes.
+- `nodes_b`: The function value approximation nodes.
+        This should be an `n×n_1_b` matrix, where `n` is dimension of the sampled space and
+        `n_1_b` is the number of function value approximation nodes. It means that each column in the matrix defines one node.
+- `values`: function values at interpolation nodes.
+- `values_lb`: function lower bound values at approximation nodes
+- `values_ub`: function upper bound values at approximation nodes
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
               `RK_H0` if the spline is constructing as a continuous function,
