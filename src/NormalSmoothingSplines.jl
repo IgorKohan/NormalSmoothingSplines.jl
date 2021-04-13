@@ -29,11 +29,18 @@ Define a structure containing full information of a normal spline
 # Fields
 - `_kernel`: a reproducing kernel spline was built with
 - `_compression`: factor of transforming the original node locations into unit hypercube
-- `_nodes`: transformed function value nodes
+- `_nodes`: transformed function value interpolation nodes
+- `_nodes_b`: transformed function value approximation nodes
 - `_values`: function values at interpolation nodes
-- `_d_nodes`: transformed function directional derivative nodes
-- `_es`: normalized derivative directions
-- `_d_values`: function directional derivative values
+- `_values_lb`: function lower bound values at approximation nodes
+- `_values_ub`: function upper bound values at approximation nodes
+- `_d_nodes`: transformed function directional derivative interpolation nodes
+- `_d_nodes_b`: transformed function directional derivative approximation nodes
+- `_es`: normalized derivative directions at interpolation nodes
+- `_es_b`: normalized derivative directions at approximation nodes
+- `_d_values`: function directional derivative values at interpolation nodes
+- `_d_values_lb`: function lower bound directional derivative values at approximation nodes
+- `_d_values_ub`: function upper bound directional derivative values at approximation nodes
 - `_min_bound`: minimal bounds of the original node locations area
 - `_gram`: Gram matrix of the problem
 - `_chol`: Cholesky factorization of the Gram matrix
@@ -44,10 +51,17 @@ struct NormalSpline{T, RK} <: AbstractSpline where {T <: AbstractFloat, RK <: Re
     _kernel::RK
     _compression::T
     _nodes::Union{Matrix{T}, Nothing}
+    _nodes_b::Union{Matrix{T}, Nothing}
     _values::Union{Vector{T}, Nothing}
+    _values_lb::Union{Vector{T}, Nothing}
+    _values_ub::Union{Vector{T}, Nothing}
     _d_nodes::Union{Matrix{T}, Nothing}
+    _d_nodes_b::Union{Matrix{T}, Nothing}
     _es::Union{Matrix{T}, Nothing}
+    _es_b::Union{Matrix{T}, Nothing}
     _d_values::Union{Vector{T}, Nothing}
+    _d_values_lb::Union{Vector{T}, Nothing}
+    _d_values_ub::Union{Vector{T}, Nothing}
     _min_bound::Union{Vector{T}, Nothing}
     _gram::Union{Matrix{T}, Nothing}
     _chol::Union{Cholesky{T, Matrix{T}}, Nothing}
@@ -58,7 +72,7 @@ end
 include("./ReproducingKernels.jl")
 include("./GramMatrix.jl")
 include("./Utils.jl")
-include("./Interpolate.jl")
+include("./Smooth.jl")
 
 """
 `prepare(nodes::Matrix{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
@@ -86,9 +100,38 @@ function prepare(nodes::Matrix{T},
 end
 
 """
+`prepare(nodes::Matrix{T}, nodes_b::Matrix{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+Prepare the spline by constructing and factoring a Gram matrix of the interpolation problem.
+Initialize the `NormalSpline` object.
+# Arguments
+- `nodes`: The function value interpolation nodes.
+           This should be an `n×n_1` matrix, where `n` is dimension of the sampled space and
+           `n_1` is the number of function value interpolation nodes. It means that each column in the matrix defines one node.
+- `nodes_b`: The function value approximation nodes.
+          This should be an `n×n_1_b` matrix, where `n` is dimension of the sampled space and
+          `n_1_b` is the number of function value approximation nodes. It means that each column in the matrix defines one node.
+- `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
+            It must be a struct object of the following type:
+              `RK_H0` if the spline is constructing as a continuous function,
+              `RK_H1` if the spline is constructing as a differentiable function,
+              `RK_H2` if the spline is constructing as a twice differentiable function.
+
+Return: the partly initialized `NormalSpline` object that must be passed to `construct` function
+        in order to complete the spline initialization.
+"""
+function prepare(nodes::Matrix{T},
+                 nodes_b::Matrix{T},
+                 kernel::RK = RK_H0()
+                ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+     spline = _prepare(nodes, nodes_b, kernel)
+     return spline
+end
+
+"""
 `construct(spline::NormalSpline{T, RK}, values::Vector{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Construct the spline by calculating its coefficients and completely initializing the `NormalSpline` object.
+construct the spline by calculating its coefficients and completely initializing the `NormalSpline` object.
 # Arguments
 - `spline`: the partly initialized `NormalSpline` object returned by `prepare` function.
 - `values`: function values at `nodes` nodes.
@@ -104,7 +147,7 @@ function construct(spline::NormalSpline{T, RK},
 end
 
 """
-`interpolate(nodes::Matrix{T}, values::Vector{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+`smooth(nodes::Matrix{T}, values::Vector{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 Prepare and construct the spline.
 # Arguments
@@ -121,7 +164,7 @@ Prepare and construct the spline.
 
 Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
 """
-function interpolate(nodes::Matrix{T},
+function smooth(nodes::Matrix{T},
                      values::Vector{T},
                      kernel::RK = RK_H0()
                     ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
@@ -245,7 +288,7 @@ function construct(spline::NormalSpline{T, RK},
 end
 
 """
-`interpolate(nodes::Matrix{T}, values::Vector{T}, d_nodes::Matrix{T}, es::Matrix{T}, d_values::Vector{T}, kernel::RK = RK_H1()) where {T <: AbstractFloat, RK <: ReproducingKernel_1}`
+`smooth(nodes::Matrix{T}, values::Vector{T}, d_nodes::Matrix{T}, es::Matrix{T}, d_values::Vector{T}, kernel::RK = RK_H1()) where {T <: AbstractFloat, RK <: ReproducingKernel_1}`
 
 Prepare and construct the spline.
 # Arguments
@@ -269,7 +312,7 @@ Prepare and construct the spline.
 
 Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
 """
-function interpolate(nodes::Matrix{T},
+function smooth(nodes::Matrix{T},
                      values::Vector{T},
                      d_nodes::Matrix{T},
                      es::Matrix{T},
@@ -401,7 +444,7 @@ function prepare(nodes::Vector{T},
 end
 
 """
-`interpolate(nodes::Vector{T}, values::Vector{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+`smooth(nodes::Vector{T}, values::Vector{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 Prepare and construct the 1D spline.
 # Arguments
@@ -418,7 +461,7 @@ Prepare and construct the 1D spline.
 
 Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
 """
-function interpolate(nodes::Vector{T},
+function smooth(nodes::Vector{T},
                      values::Vector{T},
                      kernel::RK = RK_H0()
                     ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
@@ -512,7 +555,7 @@ function prepare(nodes::Vector{T},
 end
 
 """
-`interpolate(nodes::Vector{T}, values::Vector{T}, d_nodes::Vector{T}, d_values::Vector{T}, kernel::RK = RK_H1()) where {T <: AbstractFloat, RK <: ReproducingKernel_1}`
+`smooth(nodes::Vector{T}, values::Vector{T}, d_nodes::Vector{T}, d_values::Vector{T}, kernel::RK = RK_H1()) where {T <: AbstractFloat, RK <: ReproducingKernel_1}`
 
 Prepare and construct the 1D spline.
 # Arguments
@@ -527,7 +570,7 @@ Prepare and construct the 1D spline.
 
 Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
 """
-function interpolate(nodes::Vector{T},
+function smooth(nodes::Vector{T},
                      values::Vector{T},
                      d_nodes::Vector{T},
                      d_values::Vector{T},

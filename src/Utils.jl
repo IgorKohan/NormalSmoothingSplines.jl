@@ -8,8 +8,8 @@ function _estimate_accuracy(spline::NormalSpline{T, RK}) where {T <: AbstractFlo
         end
     end
     σ = evaluate(spline, nodes)
-    # calculating a value of the Relative Maximum Absolute Error (RMAE) of interpolation
-    # at the function value interpolation nodes.
+    # calculating a value of the Relative Maximum Absolute Error (RMAE) of approximation
+    # at the function value approximation nodes.
     fun_max = maximum(abs.(spline._values))
     if fun_max > 0.0
         rmae = maximum(abs.(spline._values .- σ)) / fun_max

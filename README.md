@@ -4,7 +4,7 @@
 
 # Multivariate Normal Hermite-Birkhoff Uniform Smoothing Splines in Julia
 
-(project is under development)
+(This project is under development)
 
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://IgorKohan.github.io/NormalSmoothingSplines.jl/dev)
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://IgorKohan.github.io/NormalSmoothingSplines.jl/stable)

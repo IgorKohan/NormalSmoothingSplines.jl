@@ -66,6 +66,76 @@ function _prepare(nodes::Matrix{T},
     return spline
 end
 
+function _prepare(nodes::Matrix{T},
+                  nodes_b::Matrix{T},
+                  kernel::RK
+                 ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    # n = size(nodes, 1)
+    # n_1 = size(nodes, 2)
+    # n_1_b = size(nodes_b, 2)
+    # min_bound = Vector{T}(undef, n)
+    # compression::T = 0
+    # @inbounds for i = 1:n
+    #     min_bound[i] = nodes[i,1]
+    #     maxx::T = nodes[i,1]
+    #     for j = 2:n_1
+    #         min_bound[i] = min(min_bound[i], nodes[i,j])
+    #         maxx = max(maxx, nodes[i,j])
+    #     end
+    #     compression = max(compression, maxx - min_bound[i])
+    # end
+    # if compression <= eps(T(1.0))
+    #     error("Cannot prepare the spline: `nodes` data are not correct.")
+    # end
+    #
+    # t_nodes = similar(nodes)
+    # @inbounds for j = 1:n_1
+    #     for i = 1:n
+    #         t_nodes[i,j] = (nodes[i,j] - min_bound[i]) / compression
+    #     end
+    # end
+    #
+    # if T(kernel.ε) == T(0.0)
+    #     ε = _estimate_ε(t_nodes)
+    #     if isa(kernel, RK_H0)
+    #         kernel = RK_H0(ε)
+    #     elseif isa(kernel, RK_H1)
+    #         ε *= T(1.5)
+    #         kernel = RK_H1(ε)
+    #     elseif isa(kernel, RK_H2)
+    #         ε *= T(2.0)
+    #         kernel = RK_H2(ε)
+    #     else
+    #         error("incorrect `kernel` type.")
+    #     end
+    # end
+    #
+    # gram = _gram(t_nodes, kernel)
+    # chol = nothing
+    # try
+    #     chol = cholesky(gram)
+    # catch
+    #     error("Cannot prepare the spline: Gram matrix is degenerate.")
+    # end
+    #
+    # cond = _estimate_cond(gram, chol)
+    #
+    # spline = NormalSpline(kernel,
+    #                       compression,
+    #                       t_nodes,
+    #                       nothing,
+    #                       nothing,
+    #                       nothing,
+    #                       nothing,
+    #                       min_bound,
+    #                       gram,
+    #                       chol,
+    #                       nothing,
+    #                       cond
+    #                      )
+    # return spline
+end
+
 function _construct(spline::NormalSpline{T, RK},
                     values::Vector{T},
                     cleanup::Bool = false
