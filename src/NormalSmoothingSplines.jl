@@ -136,8 +136,7 @@ construct the spline by calculating its coefficients and completely initializing
 - `spline`: the partly initialized `NormalSpline` object returned by `prepare` function.
 - `values`: function values at `nodes` nodes.
 
-Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function
-        to interpolate the data to required points.
+Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
 """
 function construct(spline::NormalSpline{T, RK},
                    values::Vector{T}
@@ -147,7 +146,62 @@ function construct(spline::NormalSpline{T, RK},
 end
 
 """
-`smooth(nodes::Matrix{T}, values::Vector{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+`construct(spline::NormalSpline{T, RK}, values::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+construct the spline by calculating its coefficients and completely initializing the `NormalSpline` object.
+# Arguments
+- `spline`: the partly initialized `NormalSpline` object returned by `prepare` function.
+- `values`: function values at interpolation nodes.
+- `values_lb`: function lower bound values at approximation nodes
+- `values_ub`: function upper bound values at approximation nodes
+
+Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
+"""
+function construct(spline::NormalSpline{T, RK},
+                   values::Vector{T},
+                   values_lb::Vector{T},
+                   values_ub::Vector{T},
+                  ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    spline = _construct(spline, values, values_lb, values_ub)
+    return spline
+end
+
+"""
+`interpolate(nodes::Matrix{T}, values::Vector{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+Prepare and construct the spline.
+# Arguments
+- `nodes`: The function value nodes.
+           This should be an `n×n_1` matrix, where `n` is dimension of the sampled space
+           and `n_1` is the number of function value nodes.
+           It means that each column in the matrix defines one node.
+- `nodes_b`: The function value approximation nodes.
+         This should be an `n×n_1_b` matrix, where `n` is dimension of the sampled space and
+         `n_1_b` is the number of function value approximation nodes. It means that each column in the matrix defines one node.
+- `values`: function values at `nodes` nodes.
+- `values_lb`: function lower bound values at approximation nodes
+- `values_ub`: function upper bound values at approximation nodes
+- `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
+            It must be a struct object of the following type:
+              `RK_H0` if the spline is constructing as a continuous function,
+              `RK_H1` if the spline is constructing as a differentiable function,
+              `RK_H2` if the spline is constructing as a twice differentiable function.
+
+Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
+"""
+function interpolate(nodes::Matrix{T},
+                     values::Vector{T},
+                     kernel::RK = RK_H0()
+                    ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+     spline = _prepare(nodes, kernel)
+     spline = _construct(spline, values)
+     return spline
+end
+
+
+"""
+`smooth(nodes::Matrix{T}, nodes_b::Matrix{T}, values::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T},
+        kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 Prepare and construct the spline.
 # Arguments
@@ -165,11 +219,14 @@ Prepare and construct the spline.
 Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
 """
 function smooth(nodes::Matrix{T},
-                     values::Vector{T},
-                     kernel::RK = RK_H0()
-                    ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
-     spline = _prepare(nodes, kernel)
-     spline = _construct(spline, values)
+                nodes_b::Matrix{T},
+                values::Vector{T},
+                values_lb::Vector{T},
+                values_ub::Vector{T},
+                kernel::RK = RK_H0()
+               ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+     spline = _prepare(nodes, nodes_b, kernel)
+     spline = _construct(spline, values, values_lb, values_ub)
      return spline
 end
 
@@ -276,8 +333,7 @@ Construct the spline by calculating its coefficients and completely initializing
 - `values`: function values at `nodes` nodes.
 - `d_values`: function directional derivative values at `d_nodes` nodes.
 
-Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function
-        to interpolate the data to required points.
+Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
 """
 function construct(spline::NormalSpline{T, RK},
                    values::Vector{T},
@@ -288,7 +344,7 @@ function construct(spline::NormalSpline{T, RK},
 end
 
 """
-`smooth(nodes::Matrix{T}, values::Vector{T}, d_nodes::Matrix{T}, es::Matrix{T}, d_values::Vector{T}, kernel::RK = RK_H1()) where {T <: AbstractFloat, RK <: ReproducingKernel_1}`
+`interpolate(nodes::Matrix{T}, values::Vector{T}, d_nodes::Matrix{T}, es::Matrix{T}, d_values::Vector{T}, kernel::RK = RK_H1()) where {T <: AbstractFloat, RK <: ReproducingKernel_1}`
 
 Prepare and construct the spline.
 # Arguments
@@ -312,7 +368,7 @@ Prepare and construct the spline.
 
 Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
 """
-function smooth(nodes::Matrix{T},
+function interpolate(nodes::Matrix{T},
                      values::Vector{T},
                      d_nodes::Matrix{T},
                      es::Matrix{T},
@@ -444,7 +500,7 @@ function prepare(nodes::Vector{T},
 end
 
 """
-`smooth(nodes::Vector{T}, values::Vector{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+`interpolate(nodes::Vector{T}, values::Vector{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 Prepare and construct the 1D spline.
 # Arguments
@@ -461,7 +517,7 @@ Prepare and construct the 1D spline.
 
 Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
 """
-function smooth(nodes::Vector{T},
+function interpolate(nodes::Vector{T},
                      values::Vector{T},
                      kernel::RK = RK_H0()
                     ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
@@ -555,7 +611,7 @@ function prepare(nodes::Vector{T},
 end
 
 """
-`smooth(nodes::Vector{T}, values::Vector{T}, d_nodes::Vector{T}, d_values::Vector{T}, kernel::RK = RK_H1()) where {T <: AbstractFloat, RK <: ReproducingKernel_1}`
+`interpolate(nodes::Vector{T}, values::Vector{T}, d_nodes::Vector{T}, d_values::Vector{T}, kernel::RK = RK_H1()) where {T <: AbstractFloat, RK <: ReproducingKernel_1}`
 
 Prepare and construct the 1D spline.
 # Arguments
@@ -570,7 +626,7 @@ Prepare and construct the 1D spline.
 
 Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
 """
-function smooth(nodes::Vector{T},
+function interpolate(nodes::Vector{T},
                      values::Vector{T},
                      d_nodes::Vector{T},
                      d_values::Vector{T},
