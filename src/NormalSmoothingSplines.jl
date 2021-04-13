@@ -1,7 +1,7 @@
 module NormalSmoothingSplines
 
 #### Inteface deinition
-export prepare, construct, interpolate
+export prepare, construct, interpolate, smooth
 export evaluate, evaluate_one, evaluate_gradient
 export NormalSpline, RK_H0, RK_H1, RK_H2
 export get_epsilon, estimate_epsilon, get_cond, estimate_cond
@@ -197,7 +197,6 @@ function interpolate(nodes::Matrix{T},
      spline = _construct(spline, values)
      return spline
 end
-
 
 """
 `smooth(nodes::Matrix{T}, nodes_b::Matrix{T}, values::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T},

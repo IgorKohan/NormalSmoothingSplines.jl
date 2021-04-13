@@ -2,6 +2,7 @@ function _estimate_accuracy(spline::NormalSpline{T, RK}) where {T <: AbstractFlo
     n = size(spline._nodes, 1)
     m = size(spline._nodes, 2)
     nodes = similar(spline._nodes)
+    # TODO smoothing spline case
     @inbounds for i = 1:n
         for j = 1:m
             nodes[i,j] = spline._min_bound[i] + spline._compression * spline._nodes[i,j]

@@ -4,7 +4,7 @@
 
 | Function                            | Description                                                                                        |
 |:----------------------------------- |:-------------------------------------------------------------------------------------------------- |
-|```prepare```                        |Prepare the spline by constructing and factoring a Gram matrix of the interpolation problem.        |
+|```prepare```                        |Prepare the spline by constructing and factoring a Gram matrix of the problem.                      |
 |```construct```                      |Construct the spline by calculating its coefficients.                                               |
 |```interpolate```                    |Prepare and construct the interpolating spline.                                                     |
 |```smooth```                         |Prepare and construct the smoothing spline.                                                         |
