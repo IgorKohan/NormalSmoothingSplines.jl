@@ -73,10 +73,10 @@ function _prepare(nodes::Matrix{T},
     return spline
 end
 
-function _prepare(nodes::Matrix{T},
-                  nodes_b::Matrix{T},
-                  kernel::RK
-                 ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+function _prepare_smoothing_spline(nodes::Matrix{T},
+                                   nodes_b::Matrix{T},
+                                   kernel::RK
+                                  ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
      n = size(nodes, 1)
      n_1 = size(nodes, 2)
 
@@ -204,12 +204,12 @@ function _construct(spline::NormalSpline{T, RK},
     return spline
 end
 
-function _construct(spline::NormalSpline{T, RK},
-                    values::Vector{T},
-                    values_lb::Vector{T},
-                    values_ub::Vector{T},
-                    cleanup::Bool = false
-                   ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+function _construct_smoothing_spline(spline::NormalSpline{T, RK},
+                                     values::Vector{T},
+                                     values_lb::Vector{T},
+                                     values_ub::Vector{T},
+                                     cleanup::Bool = false
+                                    ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
     if(length(values) != size(spline._nodes, 2))
         error("Number of data values does not correspond to the number of nodes.")
     end
@@ -237,8 +237,8 @@ function _construct(spline::NormalSpline{T, RK},
                           nothing,
                           nothing,
                           spline._min_bound,
-                          cleanup ? nothing : spline._gram,
-                          cleanup ? nothing : spline._chol,
+                          spline._gram,
+                          spline._chol,
                           mu,
                           spline._cond
                          )

@@ -4,10 +4,12 @@
 
 | Function                            | Description                                                                                        |
 |:----------------------------------- |:-------------------------------------------------------------------------------------------------- |
-|```prepare```                        |Prepare the spline by constructing and factoring a Gram matrix of the problem.                      |
-|```construct```                      |Construct the spline by calculating its coefficients.                                               |
-|```interpolate```                    |Prepare and construct the interpolating spline.                                                     |
+|```prepare_smoothing_spline```       |Prepare the smoothing spline by constructing and factoring a Gram matrix of the problem.            |
+|```construct_smoothing_spline```     |Construct the smoothing spline by calculating its coefficients.                                     |
 |```smooth```                         |Prepare and construct the smoothing spline.                                                         |
+|```prepare```                        |Prepare the interpolating spline by constructing and factoring a Gram matrix of the problem.        |
+|```construct```                      |Construct the interpolating spline by calculating its coefficients.                                 |
+|```interpolate```                    |Prepare and construct the interpolating spline.                                                     |
 |```evaluate```                       |Evaluate the spline value at the required locations                                                 |
 |```evaluate_one```                   |Evaluate the spline value at the required location                                                  |
 |```evaluate_gradient```              |Evaluate gradient of the spline at the required location.                                           |
@@ -20,10 +22,12 @@
 
 ## Functions
 ```@docs
+prepare_smoothing_spline
+construct_smoothing_spline
+smooth
 prepare
 construct
 interpolate
-smooth
 evaluate
 evaluate_one
 evaluate_gradient
