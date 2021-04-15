@@ -2,25 +2,29 @@
 Author = "Igor Kohanovsky"
 ```
 
-# NormalHermiteSplines.jl package
+# NormalSmoothingSplines.jl package
 
-*Multivariate Normal Hermite-Birkhoff Interpolating Splines in Julia*
+*Multivariate Normal Hermite-Birkhoff Uniform Smoothing Splines in Julia*
 
-`NormalHermiteSplines.jl` package implements the normal splines method for solving following interpolation problem:
+`NormalSmoothingSplines.jl` implements the normal splines method for solving the following approximation problem:
 
-*Problem:*   Given points ``\{p_i, p_i \in R^n\}_{i=1}^{n_1}``, ``\{s_j, s_j \in R^n\}_{j=1}^{n_2}`` and a set of unit vectors ``\{e_j, e_j \in R^n\}_{j=1}^{n_2}`` find a function ``f`` such that
+*Problem:* Given points ``\{p_i, p_i \in R^n\}_{i=1}^{n_1}``, ``\{\overline p_i, \overline p_i \in R^n\}_{i=1}^{n_2}``, ``\{s_j, s_j \in R^n\}_{j=1}^{n_3}``, ``\{\overline s_j, \overline s_j \in R^n\}_{j=1}^{n_4}`` and sets of unit vectors ``\{e_j, e_j \in R^n\}_{j=1}^{n_3}``, ``\{\overline e_j, \overline e_j \in R^n\}_{j=1}^{n_4}`` find a function ``f`` such that
 
 ```math
 \tag{1}
 \begin{aligned}
 & f(p_i) =  u_i \, , \quad  i = 1, 2, \dots, n_1 \, ,
 \\  
-& \frac{ \partial{f} }{ \partial{e_j} }(s_j) =  v_j \, , \quad  j = 1, 2, \dots, n_2 \, ,
-\\
-& n_1 \gt 0 \, ,  \ \  n_2 \ge 0 \, .
+&  \underline u_i \le f(\overline p_i) \le \overline u_i \, , \quad  i = 1, 2, \dots, n_2 \, ,
+\\  
+& \frac{ \partial{f} }{ \partial{e_j} }(s_j) =  v_j \, , \quad  j = 1, 2, \dots, n_3 \, ,
+\\  
+&  \underline v_j \le \frac{ \partial{f} }{ \partial{\overline e_j} } (\overline s_j) \le \overline v_j \, , \quad  j = 1, 2, \dots, n_4 \, , \\
+& n_1 \ge 0 \, , \  n_2 \ge 0 \, , \ n_3 \ge 0 \, , \  n_4 \ge 0 \, ,
 \end{aligned}
-```
-where ``\frac{ \partial{f} }{ \partial{e_j} }(s_j) = \nabla f(s_j) \cdot e_j = \sum _{k=1}^{n}  \frac{ \partial{f} }{ \partial{x_k} } (s_j) e_{jk}`` is a directional derivative of ``f`` at the point ``s_j`` in the direction of ``e_j``.
+``` 
+where ``\frac{ \partial{f} }{ \partial{e} }(s) = \nabla f(s) \cdot e = \sum _{k=1}^{n}  \frac{ \partial{f} }{ \partial{x_k} } (s) e_{k}`` is a directional derivative of ``f`` at the point ``s`` in the direction of ``e``, moreover, points ``\{p_i\}_{i=1}^{n_1}`` and ``\{\overline p_i\}_{i=1}^{n_2}`` as well as points ``\{s_j\}_{j=1}^{n_3}`` and ``\{\overline s_j\}_{j=1}^{n_4}`` are pairwise different.
+
 
 We assume that function ``f`` is an element of the Bessel potential space ``H^s_\varepsilon (R^n)`` which is defined as:
 
@@ -31,22 +35,22 @@ We assume that function ``f`` is an element of the Bessel potential space ``H^s_
 ```
 where ``| \cdot |`` is the Euclidean norm, ``S'  (R^n)`` is space of L. Schwartz tempered distributions, parameter ``s`` may be treated as a fractional differentiation order and ``\mathcal F [\varphi ]`` is a Fourier transform of the ``\varphi``. The parameter ``\varepsilon`` can be considered as a "scaling parameter", it allows to control approximation properties of the normal spline which usually are getting better with smaller values of ``\varepsilon``, also it can be used to reduce the ill-conditioness of the related computational problem (in traditional theory ``\varepsilon = 1``).
 
-The Bessel potential space ``H^s_\varepsilon (R^n)`` is a Reproducing kernel Hilbert space, an element ``f`` of that space can be treated as a bounded ``r``-times continuously differentiable function.
+The Bessel potential space ``H^s_\varepsilon (R^n)`` is a  Reproducing kernel Hilbert space, an element ``f`` of that space can be treated as a ``r``-times continuously differentiable function.
 
-The normal splines method consists in finding a solution of system (1) having minimal norm in Hilbert space ``H^s_\varepsilon (R^n) ,`` thus an interpolating normal spline ``\sigma`` is defined as follows:
+The normal splines method consists in finding a solution of system (1) having minimal norm in Hilbert space ``H^s_\varepsilon (R^n)``, thus an uniform smoothing normal spline ``\sigma`` is defined as follows:
 
 ```math
 \tag{2}
-   \sigma = {\rm arg\,min}\{  \| f \|^2 : (1), \forall f \in H^s_\varepsilon (R^n) \} \, .
+   \sigma = {\rm arg\,min}\{  \| f \|^2 : (1), \ \forall f \in H^s_\varepsilon (R^n) \} \, .
 ```
 
 The normal splines method is based on the following functional analysis results:
 
 * Bessel potential space embedding theorem
 * The Riesz representation theorem for Hilbert spaces
-* Reproducing kernel properties
+* Reproducing kernel properties 
 
-Using these results it is possible to reduce the task (2) to solving a system of linear equations with symmetric positive definite Gram matrix.
+Using these results it is possible to reduce task (2) to solving a finite-dimensional quadratic programming problem. 
 
 The normal splines method for one-dimensional function interpolation and linear ordinary differential and integral equations was proposed in [1]. An idea of the multivariate splines in Sobolev space was initially formulated in [7], however it was not well-suited to solving real-world problems. Using that idea the multivariate generalization of the normal splines method was developed for two-dimensional problem of low-range computerized tomography in [2] and applied for solving a mathematical economics problem in [3]. At the same time an interpolation scheme with Matérn kernels was developed in [8], this scheme coincides with interpolating normal splines method. Further results related to  applications of the normal splines method were reported at the seminars and conferences [4,5,6]. 
 

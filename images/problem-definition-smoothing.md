@@ -15,7 +15,7 @@ This Julia package implements the normal splines method for solving the followin
 & n_1 \ge 0 \, , \  n_2 \ge 0 \, , \ n_3 \ge 0 \, , \  n_4 \ge 0 \, ,
 \end{aligned}
 ``` 
-where ``\frac{ \partial{f} }{ \partial{e} }(s) = \nabla f(s) \cdot e = \sum _{k=1}^{n}  \frac{ \partial{f} }{ \partial{x_k} } (s) e_{k}`` is a directional derivative of ``f`` at the point ``s`` in the direction of ``e``.
+where ``\frac{ \partial{f} }{ \partial{e} }(s) = \nabla f(s) \cdot e = \sum _{k=1}^{n}  \frac{ \partial{f} }{ \partial{x_k} } (s) e_{k}`` is a directional derivative of ``f`` at the point ``s`` in the direction of ``e``, moreover, points ``\{p_i\}_{i=1}^{n_1}`` and ``\{\overline p_i\}_{i=1}^{n_2}`` as well as points ``\{s_j\}_{j=1}^{n_3}`` and ``\{\overline s_j\}_{j=1}^{n_4}`` are pairwise different.
 
 We assume that function ``f`` is an element of the Bessel potential space ``H^s_\varepsilon (R^n)`` which is defined as:
 

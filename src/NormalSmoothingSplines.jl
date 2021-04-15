@@ -73,6 +73,7 @@ end
 include("./ReproducingKernels.jl")
 include("./GramMatrix.jl")
 include("./Utils.jl")
+include("./QP1.jl")
 include("./Smooth.jl")
 
 """
