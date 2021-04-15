@@ -1,17 +1,17 @@
 This Julia package implements the normal splines method for solving the following approximation problem:
 
-*Problem:* Given pairwise different points ``\{p_i, p_i \in R^n\}_{i=1}^{n_1}``, ``\{\overline p_i, \overline p_i \in R^n\}_{i=1}^{n_2}``, pairwise different points ``\{s_j, s_j \in R^n\}_{j=1}^{n_3}``, ``\{\overline s_j, \overline s_j \in R^n\}_{j=1}^{n_4}`` and sets of unit vectors ``\{e_j, e_j \in R^n\}_{j=1}^{n_3}``, ``\{\overline e_j, \overline e_j \in R^n\}_{j=1}^{n_4}`` find a function ``f`` such that
+*Problem:* Given pairwise different points ``\{p_i, p_i \in R^n\}_{i=1}^{n_1}``, ``\{\overline p_j, \overline p_j \in R^n\}_{j=1}^{n_2}``, pairwise different points ``\{s_r, s_r~\in R^n\}_{r=1}^{n_3}``, ``\{\overline s_t, \overline s_t \in R^n\}_{t=1}^{n_4}`` and sets of unit vectors ``\{e_r, e_r \in R^n\}_{r=1}^{n_3}``, ``\{\overline e_t, \overline e_t \in R^n\}_{t=1}^{n_4}`` find a function ``f`` such that
 
 ```math
 \tag{1}
 \begin{aligned}
 & f(p_i) =  u_i \, , \quad  i = 1, 2, \dots, n_1 \, ,
 \\  
-&  \underline u_i \le f(\overline p_i) \le \overline u_i \, , \quad  i = 1, 2, \dots, n_2 \, ,
+&  \underline u_j \le f(\overline p_j) \le \overline u_j \, , \quad  j = 1, 2, \dots, n_2 \, ,
 \\  
-& \frac{ \partial{f} }{ \partial{e_j} }(s_j) =  v_j \, , \quad  j = 1, 2, \dots, n_3 \, ,
+& \frac{ \partial{f} }{ \partial{e_r} }(s_r) =  v_r \, , \quad  r = 1, 2, \dots, n_3 \, ,
 \\  
-&  \underline v_j \le \frac{ \partial{f} }{ \partial{\overline e_j} } (\overline s_j) \le \overline v_j \, , \quad  j = 1, 2, \dots, n_4 \, , \\
+&  \underline v_t \le \frac{ \partial{f} }{ \partial{\overline e_t} } (\overline s_t) \le \overline v_t \, , \quad  t = 1, 2, \dots, n_4 \, , \\
 & n_1 \ge 0 \, , \  n_2 \ge 0 \, , \ n_3 \ge 0 \, , \  n_4 \ge 0 \, ,
 \end{aligned}
 ``` 
@@ -22,7 +22,7 @@ We assume that function ``f`` is an element of the Bessel potential space ``H^s_
 ```math
    H^s_\varepsilon (R^n) = \left\{ \varphi | \varphi \in S' ,
   ( \varepsilon ^2 + | \xi |^2 )^{s/2}{\mathcal F} [\varphi ] \in L_2 (R^n) \right\} , \quad
-  \varepsilon \gt 0 , \ \ s = n/2 + 1/2 + r \, , \quad r = 1,2,\dots \, .
+  \varepsilon \gt 0 , \  s = n/2 + 1/2 + r \, , \ r = 1,2,\dots \, .
 ```
 where ``| \cdot |`` is the Euclidean norm, ``S'  (R^n)`` is space of L. Schwartz tempered distributions, parameter ``s`` may be treated as a fractional differentiation order and ``\mathcal F [\varphi ]`` is a Fourier transform of the ``\varphi``. The parameter ``\varepsilon`` can be considered as a "scaling parameter", it allows to control approximation properties of the normal spline which usually are getting better with smaller values of ``\varepsilon``, also it can be used to reduce the ill-conditioness of the related computational problem (in traditional theory ``\varepsilon = 1``).
 
