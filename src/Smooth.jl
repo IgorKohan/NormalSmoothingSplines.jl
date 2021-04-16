@@ -117,7 +117,7 @@ function _prepare_smoothing_spline(nodes::Matrix{T},
          end
      end
 
-     t_nodes_all = [t_nodes; t_nodes_b]
+     t_nodes_all = [t_nodes t_nodes_b]
 
      if T(kernel.ε) == T(0.0)
          ε = _estimate_ε(t_nodes_all)
@@ -217,7 +217,8 @@ function _construct_smoothing_spline(spline::NormalSpline{T, RK},
         error("Gram matrix was not factorized.")
     end
 
-    values_b = (values_lb + values_ub) ./ T(2.0)
+    values_b = similar(values_lb)
+    values_b .= (values_lb .+ values_ub) ./ T(2.0)
     values_all = [values; values_b]
     mu = Vector{T}(undef, size(spline._gram, 1))
     ldiv!(mu, spline._chol, values_all)
@@ -242,6 +243,7 @@ function _construct_smoothing_spline(spline::NormalSpline{T, RK},
                           mu,
                           spline._cond
                          )
+    spline = qp(spline, cleanup)
     return spline
 end
 
@@ -506,6 +508,51 @@ function _do_work_d(istart::Int,
        end
        spline_values[p] += sum(d_mu .* d_h_values)
     end
+end
+
+function _evaluate_smoothing_spline(spline::NormalSpline{T, RK},
+                                    points::Matrix{T},
+                                   ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    if isnothing(spline)
+        error("Spline was not prepared.")
+    end
+    if isnothing(spline._mu)
+        error("Spline coefficients were not calculated.")
+    end
+
+    # TODO dimenion checks
+    # if size(points, 1) != size(spline._nodes, 1)
+    #     if size(points, 1) == 1 && size(points, 2) > 1
+    #         error("Incorrect first dimension of the `points` parameter (use 'evaluate_one' function for evaluating the spline at one point).")
+    #     else
+    #         error("Incorrect first dimension of the `points` parameter (the spline was built in the space of different dimension).")
+    #     end
+    # end
+
+    n = size(spline._nodes, 1)
+    n_1 = size(spline._nodes, 2)
+    n_1_b = size(spline._nodes_b, 2)
+    m = size(points, 2)
+
+    pts = similar(points)
+    @inbounds for j = 1:m
+        for i = 1:n
+            pts[i,j] = (points[i,j] - spline._min_bound[i]) / spline._compression
+        end
+    end
+
+    spline_values = Vector{T}(undef, m)
+    nodes_all = [spline._nodes spline._nodes_b]
+    n_1_all = n_1 + n_1_b
+    h_values = Vector{T}(undef, n_1_all)
+    @inbounds for p = 1:m
+        for i = 1:n_1_all
+            h_values[i] = _rk(spline._kernel, pts[:,p], nodes_all[:,i])
+        end
+        spline_values[p] = sum(spline._mu .* h_values)
+    end
+
+    return spline_values
 end
 
 function _evaluate_gradient(spline::NormalSpline{T, RK},

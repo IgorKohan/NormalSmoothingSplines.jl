@@ -2,6 +2,7 @@ module NormalSmoothingSplines
 
 #### Inteface deinition
 export prepare_smoothing_spline, construct_smoothing_spline, smooth
+export evaluate_smoothing_spline, evaluate_smoothing_spline_one #, evaluate_gradient
 export prepare, construct, interpolate
 export evaluate, evaluate_one, evaluate_gradient
 export NormalSpline, RK_H0, RK_H1, RK_H2
@@ -238,7 +239,7 @@ end
 """
 `evaluate(spline::NormalSpline{T, RK}, points::Matrix{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Evaluate the spline values at the locations defined in `points`.
+Evaluate the interpolating spline values at the locations defined in `points`.
 
 # Arguments
 - `spline: the `NormalSpline` object returned by `interpolate` or `construct` function.
@@ -256,9 +257,30 @@ function evaluate(spline::NormalSpline{T, RK},
 end
 
 """
+`evaluate_smoothing_spline(spline::NormalSpline{T, RK}, points::Matrix{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+Evaluate the smoothing spline values at the locations defined in `points`.
+
+# Arguments
+- `spline: the `NormalSpline` object returned by `interpolate_smoothing_spline` or `construct_smoothing_spline` function.
+- `points`: locations at which spline values are evaluating.
+            This should be an `n×m` matrix, where `n` is dimension of the sampled space
+            and `m` is the number of locations where spline values are evaluating.
+            It means that each column in the matrix defines one location.
+
+Return: `Vector{T}` of the spline values at the locations defined in `points`.
+"""
+function evaluate_smoothing_spline(spline::NormalSpline{T, RK},
+                                   points::Matrix{T}
+                                  ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    return _evaluate_smoothing_spline(spline, points)
+end
+
+
+"""
 `evaluate_one(spline::NormalSpline{T, RK}, point::Vector{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Evaluate the spline value at the `point` location.
+Evaluate the interpolating spline value at the `point` location.
 
 # Arguments
 - `spline`: the `NormalSpline` object returned by `interpolate` or `construct` function.
@@ -271,6 +293,24 @@ function evaluate_one(spline::NormalSpline{T, RK},
                       point::Vector{T}
                      ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
     return _evaluate(spline, reshape(point, :, 1))[1]
+end
+
+"""
+`evaluate_smoothing_spline_one(spline::NormalSpline{T, RK}, point::Vector{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+Evaluate the smoothing spline value at the `point` location.
+
+# Arguments
+- `spline`: the `NormalSpline` object returned by `interpolate` or `construct` function.
+- `point`: location at which spline value is evaluating.
+           This should be a vector of size `n`, where `n` is dimension of the sampled space.
+
+Return: the spline value at the location defined in `point`.
+"""
+function evaluate_smoothing_spline_one(spline::NormalSpline{T, RK},
+                                       point::Vector{T}
+                                      ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    return _evaluate_smoothing_spline(spline, reshape(point, :, 1))[1]
 end
 
 """
@@ -599,7 +639,7 @@ end
 """
 `evaluate(spline::NormalSpline{T, RK}, points::Vector{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Evaluate the spline values/value at the `points` locations.
+Evaluate the 1D interpolating spline values/value at the `points` locations.
 
 # Arguments
 - `spline`: the `NormalSpline` object returned by `interpolate` or `construct` function.
@@ -615,9 +655,27 @@ function evaluate(spline::NormalSpline{T, RK},
 end
 
 """
+`evaluate_smoothing_spline(spline::NormalSpline{T, RK}, points::Vector{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+Evaluate the 1D smoothing spline values/value at the `points` locations.
+
+# Arguments
+- `spline`: the `NormalSpline` object returned by `interpolate` or `construct` function.
+- `points`: locations at which spline values are evaluating.
+            This should be a vector of size `m` where `m` is the number of evaluating points.
+
+Return: spline value at the `point` location.
+"""
+function evaluate_smoothing_spline(spline::NormalSpline{T, RK},
+                                   points::Vector{T}
+                                  ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    return _evaluate_smoothing_spline(spline, Matrix(points'))
+end
+
+"""
 `evaluate_one(spline::NormalSpline{T, RK}, point::T) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Evaluate the 1D spline value at the `point` location.
+Evaluate the 1D interpolating spline value at the `point` location.
 
 # Arguments
 - `spline`: the `NormalSpline` object returned by `interpolate` or `construct` function.
@@ -631,6 +689,25 @@ function evaluate_one(spline::NormalSpline{T, RK},
     v_points = Vector{T}(undef, 1)
     v_points[1] = point
     return _evaluate(spline, Matrix(v_points'))[1]
+end
+
+"""
+`evaluate_smoothing_spline_one(spline::NormalSpline{T, RK}, point::T) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+Evaluate the 1D smoothing spline value at the `point` location.
+
+# Arguments
+- `spline`: the `NormalSpline` object returned by `interpolate` or `construct` function.
+- `point`: location at which spline value is evaluating.
+
+Return: spline value at the `point` location.
+"""
+function evaluate_smoothing_spline_one(spline::NormalSpline{T, RK},
+                                       point::T
+                                      ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    v_points = Vector{T}(undef, 1)
+    v_points[1] = point
+    return _evaluate_smoothing_spline(spline, Matrix(v_points'))[1]
 end
 
 """
