@@ -1,4 +1,4 @@
-function qp(spline::NormalSpline{T, RK}, cleanup::Bool
+function qp(spline::NormalSpline{T, RK}, nit::Int, cleanup::Bool
            ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
 
     path = "0_qp.log"
@@ -7,6 +7,11 @@ function qp(spline::NormalSpline{T, RK}, cleanup::Bool
     end
     open(path,"a") do io
         println(io,"qp started.\r\n")
+    end
+
+    for it = 1:nit
+
+
     end
 
     spline = NormalSpline(spline._kernel,
@@ -27,7 +32,8 @@ function qp(spline::NormalSpline{T, RK}, cleanup::Bool
                   spline._gram,
                   spline._chol,
                   spline._mu,
-                  spline._cond
+                  spline._cond,
+                  0
                  )
 
     open(path,"a") do io

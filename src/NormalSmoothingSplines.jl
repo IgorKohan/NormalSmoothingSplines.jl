@@ -48,6 +48,7 @@ Define a structure containing full information of a normal spline
 - `_chol`: Cholesky factorization of the Gram matrix
 - `_mu`: spline coefficients
 - `_cond`: estimation of the Gram matrix condition number
+- `_iter`: number of iterations done
 "
 struct NormalSpline{T, RK} <: AbstractSpline where {T <: AbstractFloat, RK <: ReproducingKernel_0}
     _kernel::RK
@@ -69,6 +70,7 @@ struct NormalSpline{T, RK} <: AbstractSpline where {T <: AbstractFloat, RK <: Re
     _chol::Union{Cholesky{T, Matrix{T}}, Nothing}
     _mu::Union{Vector{T}, Nothing}
     _cond::T
+    _iter::Int
 end
 
 include("./ReproducingKernels.jl")
@@ -151,7 +153,8 @@ function construct(spline::NormalSpline{T, RK},
 end
 
 """
-`construct_smoothing_spline(spline::NormalSpline{T, RK}, values::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T})
+`construct_smoothing_spline(spline::NormalSpline{T, RK},
+                            values::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T}, nit::Int)
                             where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 construct the smoothing normal spline by calculating its coefficients and
@@ -161,6 +164,7 @@ completely initializing the `NormalSpline` object.
 - `values`: function values at interpolation nodes.
 - `values_lb`: function lower bound values at approximation nodes
 - `values_ub`: function upper bound values at approximation nodes
+- `nit`: maximum number of algorithm iterations
 
 Return: the completely initialized `NormalSpline` object that can be passed to `evaluate` function.
 """
@@ -168,8 +172,9 @@ function construct_smoothing_spline(spline::NormalSpline{T, RK},
                                     values::Vector{T},
                                     values_lb::Vector{T},
                                     values_ub::Vector{T},
+                                    nit::Int = 100
                                    ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
-    spline = _construct_smoothing_spline(spline, values, values_lb, values_ub)
+    spline = _construct_smoothing_spline(spline, values, values_lb, values_ub, nit)
     return spline
 end
 
@@ -202,7 +207,7 @@ end
 
 """
 `smooth(nodes::Matrix{T}, values::Vector{T}, nodes_b::Matrix{T}, values_lb::Vector{T}, values_ub::Vector{T},
-        kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+        nit::Int, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 Prepare and construct the smoothing normal spline.
 # Arguments
@@ -216,6 +221,7 @@ Prepare and construct the smoothing normal spline.
 - `values`: function values at interpolation nodes.
 - `values_lb`: function lower bound values at approximation nodes
 - `values_ub`: function upper bound values at approximation nodes
+- `nit`: maximum number of algorithm iterations
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
               `RK_H0` if the spline is constructing as a continuous function,
@@ -229,10 +235,11 @@ function smooth(nodes::Matrix{T},
                 nodes_b::Matrix{T},
                 values_lb::Vector{T},
                 values_ub::Vector{T},
+                nit::Int = 100,
                 kernel::RK = RK_H0()
                ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
      spline = _prepare_smoothing_spline(nodes, nodes_b, kernel)
-     spline = _construct_smoothing_spline(spline, values, values_lb, values_ub)
+     spline = _construct_smoothing_spline(spline, values, values_lb, values_ub, nit)
      return spline
 end
 
@@ -605,7 +612,7 @@ end
 
 """
 `smooth(nodes::Vector{T}, values::Vector{T}, nodes_b::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T},
-        kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+        nit::Int, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 Prepare and construct the 1D smoothing normal spline.
 # Arguments
@@ -616,6 +623,7 @@ Prepare and construct the 1D smoothing normal spline.
           This should be an `n_1_b` vector where `n_1_b` is the number of function value approximation nodes.
 - `values_lb`: function lower bound values at approximation nodes
 - `values_ub`: function upper bound values at approximation nodes
+- `nit`: maximum number of algorithm iterations
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
               `RK_H0` if the spline is constructing as a continuous function,
@@ -629,10 +637,11 @@ function smooth(nodes::Vector{T},
                 nodes_b::Vector{T},
                 values_lb::Vector{T},
                 values_ub::Vector{T},
+                nit::Int = 100,
                 kernel::RK = RK_H0()
                ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
      spline = _prepare_smoothing_spline(Matrix(nodes'), Matrix(nodes_b'), kernel)
-     spline = _construct_smoothing_spline(spline, values, values_lb, values_ub)
+     spline = _construct_smoothing_spline(spline, values, values_lb, values_ub, nit)
      return spline
 end
 
@@ -760,7 +769,8 @@ function prepare(nodes::Vector{T},
 end
 
 """
-`interpolate(nodes::Vector{T}, values::Vector{T}, d_nodes::Vector{T}, d_values::Vector{T}, kernel::RK = RK_H1())
+`interpolate(nodes::Vector{T}, values::Vector{T}, d_nodes::Vector{T}, d_values::Vector{T},
+             kernel::RK = RK_H1())
              where {T <: AbstractFloat, RK <: ReproducingKernel_1}`
 
 Prepare and construct the 1D interpolating normal spline.

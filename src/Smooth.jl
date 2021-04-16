@@ -68,7 +68,8 @@ function _prepare(nodes::Matrix{T},
                           gram,
                           chol,
                           nothing,
-                          cond
+                          cond,
+                          0
                          )
     return spline
 end
@@ -162,7 +163,8 @@ function _prepare_smoothing_spline(nodes::Matrix{T},
                            gram,
                            chol,
                            nothing,
-                           cond
+                           cond,
+                           0
                           )
      return spline
 end
@@ -199,7 +201,8 @@ function _construct(spline::NormalSpline{T, RK},
                           cleanup ? nothing : spline._gram,
                           cleanup ? nothing : spline._chol,
                           mu,
-                          spline._cond
+                          spline._cond,
+                          0
                          )
     return spline
 end
@@ -208,6 +211,7 @@ function _construct_smoothing_spline(spline::NormalSpline{T, RK},
                                      values::Vector{T},
                                      values_lb::Vector{T},
                                      values_ub::Vector{T},
+                                     nit::Int,
                                      cleanup::Bool = false
                                     ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
     if(length(values) != size(spline._nodes, 2))
@@ -241,9 +245,10 @@ function _construct_smoothing_spline(spline::NormalSpline{T, RK},
                           spline._gram,
                           spline._chol,
                           mu,
-                          spline._cond
+                          spline._cond,
+                          0
                          )
-    spline = qp(spline, cleanup)
+    spline = qp(spline, nit, cleanup)
     return spline
 end
 
@@ -347,7 +352,8 @@ function _prepare(nodes::Matrix{T},
                           gram,
                           chol,
                           nothing,
-                          cond
+                          cond,
+                          0
                          )
     return spline
 end
@@ -388,7 +394,8 @@ function _construct(spline::NormalSpline{T, RK},
                           cleanup ? nothing : spline._gram,
                           cleanup ? nothing : spline._chol,
                           mu,
-                          spline._cond
+                          spline._cond,
+                          0
                          )
     return spline
 end

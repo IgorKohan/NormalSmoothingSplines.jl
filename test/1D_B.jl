@@ -8,7 +8,7 @@
     v = [4.0]                                  # function first derivative values
 
     @testset "Test 1D_B_RK_H0 kernel" begin
-        spl = smooth(x, u, x_b, u_lb, u_ub, RK_H0(0.1))  # create spline
+        spl = smooth(x, u, x_b, u_lb, u_ub, 100, RK_H0(0.1))  # create spline
         cond = estimate_cond(spl)                 # get estimation of the gram matrix condition number
         @test cond ≈ 1000.0
         # σ = evaluate(spl, x)                # evaluate spline in nodes
