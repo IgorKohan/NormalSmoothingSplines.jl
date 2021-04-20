@@ -670,22 +670,23 @@ $~$
 
 Consider the following approximation problem:
 
-*Problem:* Given pairwise different points ``\{p_i, p_i \in R^n\}_{i=1}^{n_1}``, ``\{\overline p_j, \overline p_j \in R^n\}_{j=1}^{n_2}``, pairwise different points ``\{s_r, s_r~\in R^n\}_{r=1}^{n_3}``, ``\{\overline s_t, \overline s_t \in R^n\}_{t=1}^{n_4}`` and sets of unit vectors ``\{e_r, e_r \in R^n\}_{r=1}^{n_3}``, ``\{\overline e_t, \overline e_t \in R^n\}_{t=1}^{n_4}`` find a function ``f`` such that
+*Problem:* Given points ``\{p_i, p_i \in R^n\}_{i=1}^{n_1}``, ``\{s_j, s_j \in R^n\}_{j=1}^{n_2}``, and ``\{\overline p_r, \overline p_r \in R^n\}_{r=1}^{n_3}``, ``\{\overline s_t, \overline s_t \in R^n\}_{t=1}^{n_4}`` and sets of unit vectors ``\{e_j, e_j \in R^n\}_{r=1}^{n_2}``, ``\{\overline e_t, \overline e_t \in R^n\}_{t=1}^{n_4}`` find a function ``f`` such that
 
 ```math
 \tag{1}
 \begin{aligned}
 & f(p_i) =  u_i \, , \quad  i = 1, 2, \dots, n_1 \, ,
 \\  
-&  \underline u_j \le f(\overline p_j) \le \overline u_j \, , \quad  j = 1, 2, \dots, n_2 \, ,
+& \frac{ \partial{f} }{ \partial{e_j} }(s_j) =  v_r \, , \quad  j = 1, 2, \dots, n_2 \, ,
 \\  
-& \frac{ \partial{f} }{ \partial{e_r} }(s_r) =  v_r \, , \quad  r = 1, 2, \dots, n_3 \, ,
+&  \underline u_r \le f(\overline p_r) \le \overline u_r \, , \quad  r = 1, 2, \dots, n_3 \, ,
 \\  
 &  \underline v_t \le \frac{ \partial{f} }{ \partial{\overline e_t} } (\overline s_t) \le \overline v_t \, , \quad  t = 1, 2, \dots, n_4 \, , \\
 & n_1 \ge 0 \, , \  n_2 \ge 0 \, , \ n_3 \ge 0 \, , \  n_4 \ge 0 \, ,
 \end{aligned}
 ``` 
-where ``\frac{ \partial{f} }{ \partial{e} }(s) = \nabla f(s) \cdot e = \sum _{k=1}^{n}  \frac{ \partial{f} }{ \partial{x_k} } (s) e_{k}`` is a directional derivative of function ``f`` at the point ``s`` in the direction of ``e``.
+where ``\frac{ \partial{f} }{ \partial{e} }(s) = \nabla f(s) \cdot e = \sum _{k=1}^{n}  \frac{ \partial{f} }{ \partial{x_k} } (s) e_{k}`` is a directional derivative of function ``f`` at the point ``s`` in the direction of ``e``,
+and  points ``\{p_i\}_{i=1}^{n_1}``, ``\{\overline p_r\}_{r=1}^{n_3}`` as well as points ``\{s_j\}_{j=1}^{n_2}``, ``\{\overline s_t\}_{t=1}^{n_4}`` are pairwise different.
 
 We assume that function ``f`` is an element of the Bessel potential space ``H^s_\varepsilon (R^n)`` which is defined as:
 
@@ -1402,12 +1403,12 @@ Projection ``\vartheta`` of zero element of space ``H`` onto the set ``\Psi (\va
 ```math
   \vartheta  =  \sum _{i \in A(\varphi)} \mu _i h_i \ ,
 ```
-where factors ``\mu_i`` are defined from the system of linear equations with symmetric positive definite matrix
+where coefficients ``\mu_i`` are defined from the system of linear equations with symmetric positive definite matrix
 
 ```math
     \sum _{j \in A(\varphi)} g_{ij} \mu _j = b_i  \ ,    \qquad i \in A(\varphi) \ ,
 ```
-If factors ``\mu_i``, ``i \in I_2 \cap A(\varphi)`` corresponding to the inequality constraints are nonpositive, then we can set ``\mu_i = 0`` for ``i \in P(\varphi)`` and get all conditions (8)—(10) satisfied, thereby ``\vartheta  = \sigma`` is a solution of the problem under consideration. The following algorithm is based on this remark.  Let's describe its iteration.
+If coefficients ``\mu_i``, ``i \in I_2 \cap A(\varphi)`` corresponding to the inequality constraints are nonpositive, then we can set ``\mu_i = 0`` for ``i \in P(\varphi)`` and get all conditions (8)—(10) satisfied, thereby ``\vartheta  = \sigma`` is a solution of the problem under consideration. The following algorithm is based on this remark.  Let's describe its iteration.
 
 Let's ``\sigma^ k`` be a feasible point of the system (4), (5):
 
@@ -1424,29 +1425,28 @@ where there are at most ``S`` non-zero multipliers ``\mu_i^k``.  A projection of
 \tag{10}
   \sum _{j \in A_k} g_{ij} \lambda_j^k = b_i  \, ,  \quad i \in A_k \ .
 ```
-There are two possible cases: the element ``\vartheta^k`` is feasible or it is not feasible. In the first case we check the optimality conditions, namely: if ``\lambda_i^k \le 0, \  \forall i \in I_2`` then  ``\vartheta^k`` is the solution of the problem. If the optimality conditions are not satisfied then we set ``\sigma^{k+1} = \vartheta^k``, find an index ``i \in A_k`` such that ``\lambda_i^k > 0`` and remove it from ``A_k``.
-In the second case ``\sigma^{k+1}`` will be defined as a feasible point of the ray ``\vartheta (t)``
+There are two possible cases: the element ``\vartheta^k`` is feasible or it is not feasible. In the first case we check the optimality conditions, namely: if ``\lambda_i^k \le 0, \  \forall i \in I_2 \cap A_k`` then  ``\vartheta^k`` is solution of the problem. If the optimality conditions are not satisfied then we set ``\sigma^{k+1} = \vartheta^k``, find an index ``i \in A_k`` such that ``\lambda_i^k > 0`` and remove it from ``A_k``.
+In the second case ``\sigma^{k+1}`` will be defined as a feasible point of the ray ``\sigma (t)``
 
 ```math
 \tag{11}
-  \vartheta (t) = \sigma^k + t (\vartheta^k - \sigma^k)  \ ,
+  \sigma (t) = \sigma^k + t (\vartheta^k - \sigma^k)  \ ,
 ```math
 such that it is closest to the ``\vartheta^k``. Denote ``t^k_{min}`` the corresponding value of ``t`` and ``i_k \in P_k`` — related number of the violated constraint. This index ``i_k`` will be added to ``A_k`` forming ``A_{k+1}``.
-Since all ``\sigma^k`` are feasible points, the minimization process proceeds within the feasible region and value of ``\| \sigma^k \|_H`` is not increasing. The minimization process is finite because of linear independence of the constraints, it eliminates the possibility of the algorithm cycling. The feasibility of the ``\vartheta^k`` can be checked as follows. Introduce the values ``{e_i^k}, \,  k \in P_k``:
+Since all ``\sigma^k`` are feasible points, the minimization process proceeds within the feasible region and value of ``\| \sigma^k \|_H`` is not increasing. The minimization process is finite because of linear independence of the constraints, it eliminates the possibility of the algorithm cycling. The feasibility of the ``\vartheta^k`` can be checked as follows. Introduce the values ``{e_i^k}, \,  i \in P_k``:
 
 ```math
+\tag{12}
  e_i^k = \langle h_i , \vartheta^k - \sigma^k \rangle_H =  \sum _{j=1}^N g_{ij}(\lambda_j^k - \mu _j^k) \ ,  \quad i \in P_k \ ,
 ```
-if ``{e_i^k} > 0`` then constraint with number ``i`` can be violated at the transition from ``\sigma^k`` to point ``\vartheta^k``, in a case when ``{e_i^k} < 0`` the constraint with number ``i + M`` can be violated. For all ``i \in P_k`` compute values
+if ``e_i^k \le 0 \, , \ \forall i \in P_k`` then ``\vartheta^k`` is a feasible point. Additionally, in a case when ``\lambda_i^k  \le 0 \, , \ \forall i \in I_2 \cap A_k`` it is solution of the problem.
+
+In a case when exist some ``e_i^k \gt 0`` we calculate values
 
 ```math
-  t_i^k = \begin{cases}
-           \frac {b_i - \langle h_i , \sigma^k \rangle_H}{e_i^k} \ ,
-                          \quad e_i^k > 0  \cr \cr
-           \frac {-b_{i+M} - \langle h_{i+M} , \sigma^k \rangle_H}{e_i^k} \ ,
-                          \quad e_i^k < 0  \cr \cr
-           1 \ , \quad e_i^k = 0 \cr
-               \end{cases} \ ,
+\tag{13}
+  t_i^k = \frac {b_i - \langle h_i , \sigma^k \rangle_H}{e_i^k} \ ,
+          \quad \forall i \in P_k \ : \ e_i^k > 0 \, ,
 ```
 where
 
@@ -1454,24 +1454,33 @@ where
 \langle h_i , \sigma^k \rangle_H =   \sum _{j=1}^N g_{ij} \mu _j^k \ ,
 \qquad 
  \langle h_{i+M} , \sigma^k \rangle_H =
-                 \sum _{j=1}^N g_{i+M,j} \mu _j^k \ , \quad i \in P_k \ ,
+                 \sum _{j=1}^N g_{i+M,j} \mu _j^k \ , \quad i \in P_k \ .
 ```
-here all `` t_i^k \ge 0``. Now the maximum feasible step ``t^k_{min}`` is computed as
+Here all `` t_i^k`` are non-negative values. The maximum feasible step ``t^k_{min}`` is computed as
 
 ```math
-    t^k_{min} = \min_{i \in P_k} \{ t_i^k \} 
+\tag{14}
+    t^k_{min} = \min_{i \in P_k} \{ t_i^k \} \, .
 ```
-and ``\vartheta^k`` is feasible if and only if ``t^k_{min} \ge 1`` (see (11)).
+Notice that projection ``\vartheta^k`` is feasible if and only if ``t^k_{min} \ge 1``.
 
-Thereby the algorithm's iteration consist of seven steps:
 
-1. Initialization. Let ``\sigma^0`` be a feasible point of the system (4), (5) and ``\mu_i^0``  are corresponding multipliers (9).
-2. Compute multipliers ``\lambda_j^k, \ i \in A_k`` as solution of the system (10).
-3. If ``| A_k | = S`` then go to Step 6.
-4. Compute ``t_i^k, \ \forall i \in P_k``. Find ``t^k_{min}`` and the corresponding index ``i_k``. 
-5. If ``t^k_{min} < 1`` (projection ``\vartheta^k`` is not feasible) then set ``\mu_i^{k+1} = \mu_i^k + t^k_{min} (\lambda_i^k - \mu_i^k) , \, i \in A_k`` and ``A_{k+1} = A_k \cup \{ i_k \}``. Return to Step 1.
-6. Projection ``\vartheta^k`` is feasible. If exists index ``i_p, \ i_p \in A_k`` such that ``\lambda_{i_p}^k > 0`` then set ``A_{k+1} = A_k \setminus \{ i_p \} \,`` and ``\mu_i^{k+1} = \lambda_i^k , \,  i \in A_{k+1}``. Return to Step 1.
-7. Set ``\sigma = \vartheta^k``. Stop.
+```math
+\tag{15}
+  \sigma^{k+1} = \sigma^k + t^k_{min} (\vartheta^k - \sigma^k)  \ .
+```math
+
+
+Thereby the algorithm consist of the following steps:
+
+1. Initialization. Let ``\sigma^0`` be a feasible point of the system (4), (5) and ``\mu_i^0``  are corresponding coefficients (9).
+2. Calculate coefficients ``\lambda_j^k, \ i \in A_k`` as solution of the system (10).
+3. If ``| A_k | = S`` then go to Step 7.
+4. For ``\forall i \in P_k`` calculate values ``e_i^k``. If ``e_i^k \le 0 \, , \ \forall i \in P_k`` then go to Step 7. Otherwise go to Step 5.
+5. Calculate values ``t_i^k`` for all ``i`` in ``P_k`` such that ``e_i^k \gt 0``. Find ``t^k_{min}`` and the corresponding index ``i_k``. Go to Step 6.
+6. If ``t^k_{min} < 1`` (projection ``\vartheta^k`` is not feasible) then set ``\mu_i^{k+1} = \mu_i^k + t^k_{min} (\lambda_i^k - \mu_i^k) , \, i \in A_k``, set ``A_{k+1} = A_k \cup \{ i_k \}``, and return to Step 2. Otherwise go to Step 7.
+7. Projection ``\vartheta^k`` is feasible. If exists index ``i_p, \ i_p \in A_k`` such that ``\lambda_{i_p}^k > 0`` then set ``A_{k+1} = A_k \setminus \{ i_p \} \,``, set ``\mu_i^{k+1} = \lambda_i^k , \,  i \in A_{k+1}`` and return to Step 2. Otherwise go to step 8.
+8. Set ``\sigma = \vartheta^k``. Solution is found.
 
 The algorithm starts from an initial feasible point of the system (4), (5). Such point ``\sigma^0`` can be defined as the normal solution of the system
 
@@ -1483,7 +1492,7 @@ and can be presented as
 ```math
   \sigma^0 = \sum _{i = 1}^S \mu_i^0 h_i \ ,
 ```
-where multipliers ``\mu_i^0`` are defined from the system
+where coefficients ``\mu_i^0`` are defined from the system
 
 ```math
   \sum _{j=1} ^S g_{ij} \mu _j^0  = u_i  \ ,    \qquad 1 \le i \le  S \ .

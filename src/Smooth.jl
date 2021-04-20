@@ -221,6 +221,11 @@ function _construct_smoothing_spline(spline::NormalSpline{T, RK},
         error("Gram matrix was not factorized.")
     end
 
+# TODO: check if the interpolating spline is the solution
+#       values_lb <= values <= values_ub
+#       if yes then do not smooth
+#..
+
     values_b = similar(values_lb)
     values_b .= (values_lb .+ values_ub) ./ T(2.0)
     values_all = [values; values_b]
@@ -248,7 +253,8 @@ function _construct_smoothing_spline(spline::NormalSpline{T, RK},
                           spline._cond,
                           0
                          )
-    spline = qp(spline, nit, cleanup)
+                         
+    spline = qp1(spline, nit, cleanup)
     return spline
 end
 

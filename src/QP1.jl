@@ -1,5 +1,5 @@
-function qp(spline::NormalSpline{T, RK}, nit::Int, cleanup::Bool
-           ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+function qp1(spline::NormalSpline{T, RK}, nit::Int, cleanup::Bool
+            ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
 
     path = "0_qp.log"
     if ispath(path)
@@ -9,10 +9,88 @@ function qp(spline::NormalSpline{T, RK}, nit::Int, cleanup::Bool
         println(io,"qp started.\r\n")
     end
 
-    for it = 1:nit
+# Initialization..
+    n = size(spline._nodes, 1)
+    n_1 = size(spline._nodes, 2)
+    n_1_b = size(spline._nodes_b, 2)
+    L = n_1
+    M = n_1_b
+    S = L + M
+    M2 = 2*M
+    N = L + M2
+
+    b = [spline._values; spline._values_ub; -spline._values_lb ]
+
+    ak = zeros(Int32, S)
+    pk = zeros(Int32, M2) # M
+    ek = zeros(T, M2)     # M ???
+
+    @inbounds for j = 1:L
+        ak[j] = j
+    end
+
+    @inbounds for j = 1:M2 # M ????
+        pk[j] = j + L
+    end
+
+    mu = zeros(T, S) #?? N
+    @inbounds for j = 1:S
+        mu[j] = spline._mu[j]
+    end
+
+# first case of constructing feasible point
+    nak = L
+    npk = M2
+#..
+
+# Main cycle
+    nit = 2 # Debugging
+    @inbounds for it = 1:nit
+
+# Calculating lambda
+        lambda = zeros(T, S) # ?? N
+        if nak > 0
+            mat = Matrix{T}(undef, nak, nak)
+            w = Vector{T}(undef, nak)
+            @inbounds for j = 1:nak
+                  jj = ak[j]
+                  w[j] = b[jj]
+                  for i = 1:j
+                      ii = ak[i]
+                      mat[i,j] = spline._gram[ii, jj]
+                      mat[j,i] = mat[i,j]
+                  end
+            end
+            ldiv!(cholesky!(mat), w)
+#            cholesky!(mat)
+#            w = mat \ w
+            @inbounds for j = 1:nak
+                  jj = ak[j]
+                  lambda[jj] = w[j]
+            end
+        end
+#..Calculating lambda
+
+        if nak == S
+           @goto STEP5
+        end
+
+# Calculating ek
+        @inbounds for j = 1:npk
+#..
+
+        end
+#.. Calculating ek
+
+
+
+
+@label STEP5
+
 
 
     end
+#..Main cycle
 
     spline = NormalSpline(spline._kernel,
                   spline._compression,

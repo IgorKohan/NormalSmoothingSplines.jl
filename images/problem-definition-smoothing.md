@@ -1,21 +1,22 @@
 This Julia package implements the normal splines method for solving the following approximation problem:
 
-*Problem:* Given pairwise different points ``\{p_i, p_i \in R^n\}_{i=1}^{n_1}``, ``\{\overline p_j, \overline p_j \in R^n\}_{j=1}^{n_2}``, pairwise different points ``\{s_r, s_r~\in R^n\}_{r=1}^{n_3}``, ``\{\overline s_t, \overline s_t \in R^n\}_{t=1}^{n_4}`` and sets of unit vectors ``\{e_r, e_r \in R^n\}_{r=1}^{n_3}``, ``\{\overline e_t, \overline e_t \in R^n\}_{t=1}^{n_4}`` find a function ``f`` such that
+*Problem:* Given points ``\{p_i, p_i \in R^n\}_{i=1}^{n_1}``, ``\{s_j, s_j \in R^n\}_{j=1}^{n_2}``, and ``\{\overline p_r, \overline p_r \in R^n\}_{r=1}^{n_3}``, ``\{\overline s_t, \overline s_t \in R^n\}_{t=1}^{n_4}`` and sets of unit vectors ``\{e_j, e_j \in R^n\}_{r=1}^{n_2}``, ``\{\overline e_t, \overline e_t \in R^n\}_{t=1}^{n_4}`` find a function ``f`` such that
 
 ```math
 \tag{1}
 \begin{aligned}
 & f(p_i) =  u_i \, , \quad  i = 1, 2, \dots, n_1 \, ,
 \\  
-&  \underline u_j \le f(\overline p_j) \le \overline u_j \, , \quad  j = 1, 2, \dots, n_2 \, ,
+& \frac{ \partial{f} }{ \partial{e_j} }(s_j) =  v_r \, , \quad  j = 1, 2, \dots, n_2 \, ,
 \\  
-& \frac{ \partial{f} }{ \partial{e_r} }(s_r) =  v_r \, , \quad  r = 1, 2, \dots, n_3 \, ,
+&  \underline u_r \le f(\overline p_r) \le \overline u_r \, , \quad  r = 1, 2, \dots, n_3 \, ,
 \\  
 &  \underline v_t \le \frac{ \partial{f} }{ \partial{\overline e_t} } (\overline s_t) \le \overline v_t \, , \quad  t = 1, 2, \dots, n_4 \, , \\
 & n_1 \ge 0 \, , \  n_2 \ge 0 \, , \ n_3 \ge 0 \, , \  n_4 \ge 0 \, ,
 \end{aligned}
 ``` 
-where ``\frac{ \partial{f} }{ \partial{e} }(s) = \nabla f(s) \cdot e = \sum _{k=1}^{n}  \frac{ \partial{f} }{ \partial{x_k} } (s) e_{k}`` is a directional derivative of function ``f`` at the point ``s`` in the direction of ``e``.
+where ``\frac{ \partial{f} }{ \partial{e} }(s) = \nabla f(s) \cdot e = \sum _{k=1}^{n}  \frac{ \partial{f} }{ \partial{x_k} } (s) e_{k}`` is a directional derivative of function ``f`` at the point ``s`` in the direction of ``e``,
+and  points ``\{p_i\}_{i=1}^{n_1}``, ``\{\overline p_r\}_{r=1}^{n_3}`` as well as points ``\{s_j\}_{j=1}^{n_2}``, ``\{\overline s_t\}_{t=1}^{n_4}`` are pairwise different.
 
 We assume that function ``f`` is an element of the Bessel potential space ``H^s_\varepsilon (R^n)`` which is defined as:
 
