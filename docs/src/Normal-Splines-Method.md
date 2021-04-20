@@ -677,7 +677,7 @@ Consider the following approximation problem:
 \begin{aligned}
 & f(p_i) =  u_i \, , \quad  i = 1, 2, \dots, n_1 \, ,
 \\  
-& \frac{ \partial{f} }{ \partial{e_j} }(s_j) =  v_r \, , \quad  j = 1, 2, \dots, n_2 \, ,
+& \frac{ \partial{f} }{ \partial{e_j} }(s_j) =  v_j \, , \quad  j = 1, 2, \dots, n_2 \, ,
 \\  
 &  \underline u_r \le f(\overline p_r) \le \overline u_r \, , \quad  r = 1, 2, \dots, n_3 \, ,
 \\  
