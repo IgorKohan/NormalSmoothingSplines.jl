@@ -1,78 +1,122 @@
-function qp1(spline::NormalSpline{T, RK}, nit::Int, cleanup::Bool
-            ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+function _qp1(spline::NormalSpline{T, RK}, nit::Int, logging::Bool = true, cleanup::Bool = false
+             ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
 
-    path = "0_qp.log"
-    if ispath(path)
-       rm(path)
-    end
-    open(path,"a") do io
-        println(io,"qp started.\r\n")
+    if logging == true
+        path = "0_qp1.log"
+        if ispath(path)
+           rm(path)
+        end
+        open(path,"a") do io
+            println(io,"_qp1 started.\r\n")
+        end
     end
 
 # Initialization..
-    n = size(spline._nodes, 1)
-    n_1 = size(spline._nodes, 2)
-    n_1_b = size(spline._nodes_b, 2)
-    L = n_1
-    M = n_1_b
-    S = L + M
-    M2 = 2*M
-    N = L + M2
-
+    m1 = size(spline._nodes, 2)
+    m2 = size(spline._nodes_b, 2)
+    m1p1 = m1 + 1
+    m2pm2 = m2 + m2
+    m = m1 + m2
+    n = m1 + m2 + m2
     b = [spline._values; spline._values_ub; -spline._values_lb ]
 
-    ak = zeros(Int32, S)
-    pk = zeros(Int32, M2) # M
-    ek = zeros(T, M2)     # M ???
+    # first case of constructing feasible point
+    nak = m1
+    npk = m2pm2
+    ak = zeros(Int32, m)
+    pk = zeros(Int32, npk)
+    ek = zeros(T, m)
 
-    @inbounds for j = 1:L
+    @inbounds for j = 1:nak
         ak[j] = j
     end
 
-    @inbounds for j = 1:M2 # M ????
-        pk[j] = j + L
+    @inbounds for j = 1:npk
+        pk[j] = j + m1
     end
 
-    mu = zeros(T, S) #?? N
-    @inbounds for j = 1:S
+    #.. first case of constructing feasible point
+    mu = zeros(T, n)
+    @inbounds for j = 1:m
         mu[j] = spline._mu[j]
     end
 
-# first case of constructing feasible point
-    nak = L
-    npk = M2
-#..
+    f_add::Bool = false
+    f_del::Bool = false
 
 # Main cycle
     nit = 2 # Debugging
+    nit_done = 0
     @inbounds for it = 1:nit
+        nit_done += 1
+        lambda = zeros(T, n)
 
-# Calculating lambda
-        lambda = zeros(T, S) # ?? N
         if nak > 0
-            mat = Matrix{T}(undef, nak, nak)
+#  Calculating Gram matrix factorization and lambda
             w = Vector{T}(undef, nak)
             @inbounds for j = 1:nak
-                  jj = ak[j]
-                  w[j] = b[jj]
-                  for i = 1:j
-                      ii = ak[i]
-                      mat[i,j] = spline._gram[ii, jj]
-                      mat[j,i] = mat[i,j]
-                  end
+                jj = ak[j]
+                w[j] = b[jj]
             end
-            ldiv!(cholesky!(mat), w)
-#            cholesky!(mat)
-#            w = mat \ w
+
+            if !f_add && !f_del
+                mat = Matrix{T}(undef, nak, nak)
+                si = T(1.)
+                sj = T(1.)
+                @inbounds for j = 1:nak
+                      jj = ak[j]
+                      if jj > m
+                          jj -= m2
+                          sj = T(-1.)
+                      else
+                          sj = T(1.)
+                      end
+                      for i = 1:j
+                          ii = ak[i]
+                          if ii > m
+                              ii -= m2
+                              si = T(-1.)
+                          else
+                              si = T(1.)
+                          end
+                          mat[i,j] = si * sj * spline._gram[ii, jj]
+                          mat[j,i] = mat[i,j]
+                      end
+                end # @inbounds for j = 1:nak
+
+                try
+                    cholesky!(mat)
+                catch
+                    error("_qp1: Gram matrix is degenerate.")
+                end
+
+            end #if !f_add && !f_del
+
+            if f_del
+
+            end # if f_del
+
+            if f_add
+
+            end #if f_add
+
+            #  Calculating lambda
+            w = mat \ w
+
             @inbounds for j = 1:nak
                   jj = ak[j]
                   lambda[jj] = w[j]
             end
-        end
-#..Calculating lambda
+            #..Calculating lambda
 
-        if nak == S
-           @goto STEP5
+        end #if nak > 0
+#..Calculating Gram matrix factorization and lambda
+
+        l_m = zeros(T, n)
+        l_m .=  lambda .- mu
+
+        if nak == m
+           #@goto STEP7
         end
 
 # Calculating ek
@@ -83,9 +127,10 @@ function qp1(spline::NormalSpline{T, RK}, nit::Int, cleanup::Bool
 #.. Calculating ek
 
 
+@label STEP1
 
 
-@label STEP5
+@label STEP7
 
 
 
@@ -111,11 +156,13 @@ function qp1(spline::NormalSpline{T, RK}, nit::Int, cleanup::Bool
                   spline._chol,
                   spline._mu,
                   spline._cond,
-                  0
+                  nit_done
                  )
 
-    open(path,"a") do io
-         println(io,"\r\nqp completed.")
+    if logging == true
+        open(path,"a") do io
+             println(io,"\r\n_qp1 completed.")
+        end
     end
     return spline
 end

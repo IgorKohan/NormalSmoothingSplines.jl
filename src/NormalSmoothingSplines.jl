@@ -48,7 +48,7 @@ Define a structure containing full information of a normal spline
 - `_chol`: Cholesky factorization of the Gram matrix
 - `_mu`: spline coefficients
 - `_cond`: estimation of the Gram matrix condition number
-- `_iter`: number of iterations done
+- `_iter`: number of the qp algorithm iterations done
 "
 struct NormalSpline{T, RK} <: AbstractSpline where {T <: AbstractFloat, RK <: ReproducingKernel_0}
     _kernel::RK

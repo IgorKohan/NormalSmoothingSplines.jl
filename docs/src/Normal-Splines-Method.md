@@ -1446,15 +1446,9 @@ In a case when exist some ``e_i^k \gt 0`` we calculate values
 ```math
 \tag{13}
   t_i^k = \frac {b_i - \langle h_i , \sigma^k \rangle_H}{e_i^k} \ ,
-          \quad \forall i \in P_k \ : \ e_i^k > 0 \, ,
-```
-where
-
-```math
-\langle h_i , \sigma^k \rangle_H =   \sum _{j=1}^N g_{ij} \mu _j^k \ ,
-\qquad 
- \langle h_{i+M} , \sigma^k \rangle_H =
-                 \sum _{j=1}^N g_{i+M,j} \mu _j^k \ , \quad i \in P_k \ .
+\\
+\qquad \qquad \qquad \qquad \quad   \langle h_i , \sigma^k \rangle_H =   \sum _{j=1}^N g_{ij} \mu _j^k 
+\quad \forall i \in P_k \ : \ e_i^k > 0 \, .
 ```
 Here all `` t_i^k`` are non-negative values. The maximum feasible step ``t^k_{min}`` is computed as
 

@@ -253,8 +253,8 @@ function _construct_smoothing_spline(spline::NormalSpline{T, RK},
                           spline._cond,
                           0
                          )
-                         
-    spline = qp1(spline, nit, cleanup)
+
+    spline = _qp1(spline, nit, cleanup)
     return spline
 end
 
