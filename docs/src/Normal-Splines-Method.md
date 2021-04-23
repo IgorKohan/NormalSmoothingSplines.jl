@@ -1450,7 +1450,7 @@ In a case when exist some ``e_i^k \gt 0`` we calculate values
 \qquad \qquad \qquad \qquad \quad   \langle h_i , \sigma^k \rangle_H =   \sum _{j=1}^N g_{ij} \mu _j^k 
 \quad \forall i \in P_k \ : \ e_i^k > 0 \, .
 ```
-Here all `` t_i^k`` are non-negative values. The maximum feasible step ``t^k_{min}`` is computed as
+Here all `` t_i^k`` are positive values. The maximum feasible step ``t^k_{min}`` is computed as
 
 ```math
 \tag{14}
@@ -1473,7 +1473,7 @@ Thereby the algorithm consist of the following steps:
 4. For ``\forall i \in P_k`` calculate values ``e_i^k``. If ``e_i^k \le 0 \, , \ \forall i \in P_k`` then go to Step 7. Otherwise go to Step 5.
 5. Calculate values ``t_i^k`` for all ``i`` in ``P_k`` such that ``e_i^k \gt 0``. Find ``t^k_{min}`` and the corresponding index ``i_k``. Go to Step 6.
 6. If ``t^k_{min} < 1`` (projection ``\vartheta^k`` is not feasible) then set ``\mu_i^{k+1} = \mu_i^k + t^k_{min} (\lambda_i^k - \mu_i^k) , \, i \in A_k``, set ``A_{k+1} = A_k \cup \{ i_k \}``, and return to Step 2. Otherwise go to Step 7.
-7. Projection ``\vartheta^k`` is feasible. If exists index ``i_p, \ i_p \in A_k`` such that ``\lambda_{i_p}^k > 0`` then set ``\mu_i^{k+1} = \lambda_i^k , \,  i \in A_k \,``, set ``A_{k+1} = A_k \setminus \{ i_p \} \,`` and return to Step 2. Otherwise go to step 8.
+7. Projection ``\vartheta^k`` is feasible. If exists index ``i_p, \ i_p \in I_2 \cap A_k`` such that ``\lambda_{i_p}^k > 0`` then set ``\mu_i^{k+1} = \lambda_i^k , \,  i \in A_k \,``, set ``A_{k+1} = A_k \setminus \{ i_p \} \,`` and return to Step 2. Otherwise go to step 8.
 8. Set ``\sigma = \vartheta^k``. Solution is found.
 
 The algorithm starts from an initial feasible point of the system (4), (5). Such point ``\sigma^0`` can be defined as the normal solution of the system
