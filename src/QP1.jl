@@ -119,7 +119,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
             end #if f_add
 
             #  Calculating lambda
-            w = mat \ w
+            w = mat \ w[1:nak]
 
             @inbounds for j = 1:nak
                   jj = ak[j]
@@ -138,7 +138,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
             f_opt = true
             @inbounds for i = 1:nak
                   ii = ak[i]
-                  if ii < = m1
+                  if ii <= m1
                       continue #.. for i = 1:nak
                   end
                   if lambda[ii] < T(eps)
@@ -209,7 +209,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
                  t_min = T(0.)
             end
             @inbounds for i = 1:n
-                m[i] += t_min * (lambda[i] - mu[i])
+                mu[i] += t_min * (lambda[i] - mu[i])
             end
             f_add = true
             nak += 1
@@ -218,7 +218,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
             npk -= 1
         else                      # the projection is feasible
             @inbounds for i = 1:n
-                m[i] = lambda[i]
+                mu[i] = lambda[i]
             end
 
             if nak == m1
@@ -229,7 +229,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
             f_opt = true
             @inbounds for i = 1:nak
                   ii = ak[i]
-                  if ii < = m1
+                  if ii <= m1
                       continue #.. for i = 1:nak
                   end
                   if lambda[ii] < T(eps)
@@ -250,7 +250,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
             end
 
             continue #..Main cycle
-        endif #.. t_min < (T(1.0) + eps)
+        end #.. t_min < (T(1.0) + eps)
 
     end #..Main cycle
 
