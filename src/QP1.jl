@@ -1,4 +1,5 @@
-function _qp1(spline::NormalSpline{T, RK}, nit::Int, logging::Bool = true, cleanup::Bool = false
+function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
+              logging::Bool = true, cleanup::Bool = false
              ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
 
     if logging == true
@@ -14,18 +15,19 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, logging::Bool = true, clean
 # Initialization..
     m1 = size(spline._nodes, 2)
     m2 = size(spline._nodes_b, 2)
+    b = [spline._values; spline._values_ub; -spline._values_lb]
+
     m1p1 = m1 + 1
     m2pm2 = m2 + m2
     m = m1 + m2
     n = m1 + m2 + m2
-    b = [spline._values; spline._values_ub; -spline._values_lb ]
 
     # first case of constructing feasible point
     nak = m1
     npk = m2pm2
     ak = zeros(Int32, m)
     pk = zeros(Int32, npk)
-    ek = zeros(T, m)
+    ek = ones(T, npk)  # TODO DEBUG
 
     @inbounds for j = 1:nak
         ak[j] = j
@@ -40,27 +42,43 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, logging::Bool = true, clean
     @inbounds for j = 1:m
         mu[j] = spline._mu[j]
     end
+    lambda = zeros(T, n)
+    l_m = zeros(T, n)
+    w = zeros(T, m)
+    t_max::T = typemax(T)
 
     f_add::Bool = false
     f_del::Bool = false
+    f_opt::Bool = false
+    i_add::Int = 0
+    i_del::Int = 0
 
 # Main cycle
     nit = 2 # Debugging
     nit_done = 0
+    mat = Matrix{T}(undef, nak, nak)
+#
     @inbounds for it = 1:nit
         nit_done += 1
-        lambda = zeros(T, n)
+
+        @inbounds for i = 1:n
+            lambda[i] = T(0.)
+        end
 
         if nak > 0
 #  Calculating Gram matrix factorization and lambda
-            w = Vector{T}(undef, nak)
             @inbounds for j = 1:nak
                 jj = ak[j]
                 w[j] = b[jj]
             end
 
+            f_add = false # TODO DEBUGGING
+            f_del = false # TODO DEBUGGING
+
             if !f_add && !f_del
-                mat = Matrix{T}(undef, nak, nak)
+                # if it > 1
+                #     error("_qp1: !f_add && !f_del.") # TODO DEBUGGING
+                # end
                 si = T(1.)
                 sj = T(1.)
                 @inbounds for j = 1:nak
@@ -112,30 +130,129 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, logging::Bool = true, clean
         end #if nak > 0
 #..Calculating Gram matrix factorization and lambda
 
-        l_m = zeros(T, n)
-        l_m .=  lambda .- mu
+        if nak == m && nak > m1
+            @inbounds for i = 1:n
+                mu[i] = lambda[i]
+            end
 
-        if nak == m
-           #@goto STEP7
+            f_opt = true
+            @inbounds for i = 1:nak
+                  ii = ak[i]
+                  if ii < = m1
+                      continue #.. for i = 1:nak
+                  end
+                  if lambda[ii] < T(eps)
+                      continue #.. for i = 1:nak
+                  end
+                  f_opt = false
+                  i_del = ii
+                  npk += 1
+                  pk[npk] = ii
+                  ak = deleteat!(ak, i)
+                  nak -= 1
+                  f_del = true
+                  break     #.. for i = 1:nak
+            end #.. for i = 1:nak
+
+            if f_opt == true
+                break #..Main cycle
+            end
+
+            continue #..Main cycle
+       end # nak == m
+
+        @inbounds for i = 1:n
+            l_m[i] = lambda[i] - mu[i]
         end
 
-# Calculating ek
-        @inbounds for j = 1:npk
-#..
+# Calculating t_min, i_min
+        ek = ones(T, npk) # TODO DEL DEBUG
+        si = T(1.)
+        sj = T(1.)
+        t_min::T = t_max
+        i_min::Int = 0
+        @inbounds for i = 1:npk
+            eik::T = T(0.)
+            s::T = T(0.)
+            ii = pk[i]
+            if ii > m
+                ii -= m2
+                si = T(-1.)
+            else
+                si = T(1.)
+            end
+            @inbounds for j = 1:n
+                jj = j
+                if jj > m
+                    jj -= m2
+                    sj = T(-1.)
+                else
+                    sj = T(1.)
+                end
+                eik += l_m[j] * si * sj * spline._gram[ii, jj]
+                s += mu[j] * si * sj * spline._gram[ii, jj]
+            end #.. for j = 1:n
 
-        end
-#.. Calculating ek
+            ek[i] = eik # TODO DEL DEBUG
+            if eik > T(eps)
+                tik = (b[ii] - s) / eik
+                if tik < t_min
+                    i_min = ii
+                    t_min = tik
+                end
+            end
+        end #.. for i = 1:npk
+#.. Calculating t_min, i_min
 
+        if t_min < (T(1.0) + eps) # the projection is not feasible
+            if t_min < T(0.)
+                 t_min = T(0.)
+            end
+            @inbounds for i = 1:n
+                m[i] += t_min * (lambda[i] - mu[i])
+            end
+            f_add = true
+            nak += 1
+            ak[nak] = i_min
+            pk = deleteat!(pk, findall(x->x==i_min, pk))
+            npk -= 1
+        else                      # the projection is feasible
+            @inbounds for i = 1:n
+                m[i] = lambda[i]
+            end
 
-@label STEP1
+            if nak == m1
+                f_opt = true
+                break             #..Main cycle
+            end
 
+            f_opt = true
+            @inbounds for i = 1:nak
+                  ii = ak[i]
+                  if ii < = m1
+                      continue #.. for i = 1:nak
+                  end
+                  if lambda[ii] < T(eps)
+                      continue #.. for i = 1:nak
+                  end
+                  f_opt = false
+                  i_del = ii
+                  npk += 1
+                  pk[npk] = ii
+                  ak = deleteat!(ak, i)
+                  nak -= 1
+                  f_del = true
+                  break     #.. for i = 1:nak
+            end #.. for i = 1:nak
 
-@label STEP7
+            if f_opt == true
+                break #..Main cycle
+            end
 
+            continue #..Main cycle
+        endif #.. t_min < (T(1.0) + eps)
 
-
-    end
-#..Main cycle
+    end #..Main cycle
 
     spline = NormalSpline(spline._kernel,
                   spline._compression,

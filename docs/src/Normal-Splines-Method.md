@@ -1468,7 +1468,7 @@ Notice that projection ``\vartheta^k`` is feasible if and only if ``t^k_{min} \g
 Thereby the algorithm consist of the following steps:
 
 1. Initialization. Let ``\sigma^0`` be a feasible point of the system (4), (5) and ``\mu_i^0``  are corresponding coefficients (9).
-2. Calculate coefficients ``\lambda_j^k, \ i \in A_k`` as solution of the system (10).
+2. Calculate coefficients ``\lambda_i^k, \ i \in A_k`` as solution of the system (10).
 3. If ``| A_k | = S`` then go to Step 7.
 4. For ``\forall i \in P_k`` calculate values ``e_i^k``. If ``e_i^k \le 0 \, , \ \forall i \in P_k`` then go to Step 7. Otherwise go to Step 5.
 5. Calculate values ``t_i^k`` for all ``i`` in ``P_k`` such that ``e_i^k \gt 0``. Find ``t^k_{min}`` and the corresponding index ``i_k``. Go to Step 6.

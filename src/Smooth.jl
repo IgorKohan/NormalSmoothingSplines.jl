@@ -254,7 +254,7 @@ function _construct_smoothing_spline(spline::NormalSpline{T, RK},
                           0
                          )
 
-    spline = _qp1(spline, nit, cleanup)
+    spline = _qp1(spline, nit, T(1.e-10), true, cleanup)
     return spline
 end
 
