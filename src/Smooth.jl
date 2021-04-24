@@ -563,7 +563,7 @@ function _evaluate_smoothing_spline(spline::NormalSpline{T, RK},
     spline_values = Vector{T}(undef, m)
     h_values = Vector{T}(undef, n_1)
     h_values_b = Vector{T}(undef, n_1_b)
-    
+
     # COH TODO - use only active constraints
     @inbounds for p = 1:m
         for i = 1:n_1

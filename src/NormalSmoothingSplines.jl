@@ -47,7 +47,7 @@ Define a structure containing full information of a normal spline
 - `_gram`: Gram matrix of the problem
 - `_chol`: Cholesky factorization of the Gram matrix
 - `_mu`: spline coefficients
-- `_active`: active constraint numbers at solution
+- `_active`: active inequality constraint numbers at solution
 - `_cond`: estimation of the Gram matrix condition number
 - `_iter`: number of the qp algorithm iterations done
 "
