@@ -47,6 +47,7 @@ Define a structure containing full information of a normal spline
 - `_gram`: Gram matrix of the problem
 - `_chol`: Cholesky factorization of the Gram matrix
 - `_mu`: spline coefficients
+- `_active`: active constraint numbers at solution
 - `_cond`: estimation of the Gram matrix condition number
 - `_iter`: number of the qp algorithm iterations done
 "
@@ -69,6 +70,7 @@ struct NormalSpline{T, RK} <: AbstractSpline where {T <: AbstractFloat, RK <: Re
     _gram::Union{Matrix{T}, Nothing}
     _chol::Union{Cholesky{T, Matrix{T}}, Nothing}
     _mu::Union{Vector{T}, Nothing}
+    _active::Union{Vector{Int}, Nothing}
     _cond::T
     _iter::Int
 end

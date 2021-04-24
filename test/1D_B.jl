@@ -1,16 +1,19 @@
 @testset "Test 1D_B" begin
-    x = [0.0, 1.0, 2.0]                        # function nodes
-    x_b = [0.5, 1.5, 2.5]                      # function nodes
-    u = x.^2                                   # function values in nodes
-    u_lb = u .- 0.1
-    u_ub = u .+ 0.1
-    s = [2.0]                                  # function first derivative nodes
-    v = [4.0]                                  # function first derivative values
+    # x = [0.0, 1.0, 2.0]                        # function nodes
+    # x_b = [0.5, 1.5, 2.5]                      # function nodes
+    # u = x^2
+    # u_b = x_b^2                                    # function values in nodes
+    # u_lb = u_b - 1.
+    # u_ub = u_b + 1.
+    # s = [2.0]                                  # function first derivative nodes
+    # v = [4.0]                                  # function first derivative values
 
     @testset "Test 1D_B_RK_H0 kernel" begin
-        spl = smooth(x, u, x_b, u_lb, u_ub, 100, RK_H0(0.1))  # create spline
-        cond = estimate_cond(spl)                 # get estimation of the gram matrix condition number
-        @test cond ≈ 1000.0
+        # spl = smooth(x, u, x_b, u_lb, u_ub, 100, RK_H0(0.1))  # create spline
+        # cond = estimate_cond(spl)                 # get estimation of the gram matrix condition number
+        # @test cond ≈ 1000.0
+
+
         # σ = evaluate(spl, x)                # evaluate spline in nodes
         # @test σ ≈ u                         # compare with exact function values in nodes
         #

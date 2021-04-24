@@ -25,9 +25,8 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
     # first case of constructing feasible point
     nak = m1
     npk = m2pm2
-    ak = zeros(Int32, m)
-    pk = zeros(Int32, npk)
-    ek = ones(T, npk)  # TODO DEBUG
+    ak = zeros(Int, m)
+    pk = zeros(Int, npk)
 
     @inbounds for j = 1:nak
         ak[j] = j
@@ -44,7 +43,6 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
     end
     lambda = zeros(T, n)
     l_m = zeros(T, n)
-    w = zeros(T, m)
     t_max::T = typemax(T)
 
     f_add::Bool = false
@@ -54,9 +52,8 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
     i_del::Int = 0
 
 # Main cycle
-    nit = 2 # Debugging
-    nit_done = 0
     mat = Matrix{T}(undef, nak, nak)
+    nit_done = 0
 #
     @inbounds for it = 1:nit
         nit_done += 1
@@ -66,7 +63,11 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
         end
 
         if nak > 0
+
+            mat = Matrix{T}(undef, nak, nak) # TODO DEBUGGING
+
 #  Calculating Gram matrix factorization and lambda
+            w = zeros(T, nak)
             @inbounds for j = 1:nak
                 jj = ak[j]
                 w[j] = b[jj]
@@ -103,7 +104,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
                 end # @inbounds for j = 1:nak
 
                 try
-                    cholesky!(mat)
+                    mat = cholesky!(mat)
                 catch
                     error("_qp1: Gram matrix is degenerate.")
                 end
@@ -119,7 +120,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
             end #if f_add
 
             #  Calculating lambda
-            w = mat \ w[1:nak]
+            w = mat \ w
 
             @inbounds for j = 1:nak
                   jj = ak[j]
@@ -145,12 +146,12 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
                       continue #.. for i = 1:nak
                   end
                   f_opt = false
+                  f_del = true
                   i_del = ii
                   npk += 1
                   pk[npk] = ii
                   ak = deleteat!(ak, i)
                   nak -= 1
-                  f_del = true
                   break     #.. for i = 1:nak
             end #.. for i = 1:nak
 
@@ -166,7 +167,8 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
         end
 
 # Calculating t_min, i_min
-        ek = ones(T, npk) # TODO DEL DEBUG
+        # ek = ones(T, npk) # TODO DEL DEBUG
+        # tk = zeros(T, npk) # TODO DEL DEBUG
         si = T(1.)
         sj = T(1.)
         t_min::T = t_max
@@ -193,8 +195,10 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
                 s += mu[j] * si * sj * spline._gram[ii, jj]
             end #.. for j = 1:n
 
-            ek[i] = eik # TODO DEL DEBUG
+            # ek[i] = eik # TODO DEL DEBUG
+            # tk[i] = (b[pk[i]] - s) / eik # TODO DEL DEBUG
             if eik > T(eps)
+                ii = pk[i]
                 tik = (b[ii] - s) / eik
                 if tik < t_min
                     i_min = ii
@@ -205,13 +209,11 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
 #.. Calculating t_min, i_min
 
         if t_min < (T(1.0) + eps) # the projection is not feasible
-            if t_min < T(0.)
-                 t_min = T(0.)
-            end
             @inbounds for i = 1:n
                 mu[i] += t_min * (lambda[i] - mu[i])
             end
             f_add = true
+            i_add = i_min
             nak += 1
             ak[nak] = i_min
             pk = deleteat!(pk, findall(x->x==i_min, pk))
@@ -236,12 +238,12 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
                       continue #.. for i = 1:nak
                   end
                   f_opt = false
+                  f_del = true
                   i_del = ii
                   npk += 1
                   pk[npk] = ii
                   ak = deleteat!(ak, i)
                   nak -= 1
-                  f_del = true
                   break     #.. for i = 1:nak
             end #.. for i = 1:nak
 
@@ -249,29 +251,33 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
                 break #..Main cycle
             end
 
-            continue #..Main cycle
         end #.. t_min < (T(1.0) + eps)
 
     end #..Main cycle
 
-    spline = NormalSpline(spline._kernel,
+    if f_opt == true
+        nit_done = -nit_done
+    end
+
+    spl = NormalSpline(spline._kernel,
                   spline._compression,
                   spline._nodes,
                   spline._nodes_b,
                   spline._values,
                   spline._values_lb,
                   spline._values_ub,
-                  nothing,
-                  nothing,
-                  nothing,
-                  nothing,
-                  nothing,
-                  nothing,
-                  nothing,
+                  spline._d_nodes,
+                  spline._d_nodes_b,
+                  spline._es,
+                  spline._es_b,
+                  spline._d_values,
+                  spline._d_values_lb,
+                  spline._d_values_ub,
                   spline._min_bound,
                   spline._gram,
                   spline._chol,
-                  spline._mu,
+                  mu,
+                  ak,
                   spline._cond,
                   nit_done
                  )
@@ -281,7 +287,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T = T(1.e-10),
              println(io,"\r\n_qp1 completed.")
         end
     end
-    return spline
+    return spl
 end
 
 # open("path,"a") do io

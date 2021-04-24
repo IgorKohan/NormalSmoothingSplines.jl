@@ -68,6 +68,7 @@ function _prepare(nodes::Matrix{T},
                           gram,
                           chol,
                           nothing,
+                          nothing,
                           cond,
                           0
                          )
@@ -163,6 +164,7 @@ function _prepare_smoothing_spline(nodes::Matrix{T},
                            gram,
                            chol,
                            nothing,
+                           nothing,
                            cond,
                            0
                           )
@@ -201,6 +203,7 @@ function _construct(spline::NormalSpline{T, RK},
                           cleanup ? nothing : spline._gram,
                           cleanup ? nothing : spline._chol,
                           mu,
+                          nothing,
                           spline._cond,
                           0
                          )
@@ -250,6 +253,7 @@ function _construct_smoothing_spline(spline::NormalSpline{T, RK},
                           spline._gram,
                           spline._chol,
                           mu,
+                          nothing,
                           spline._cond,
                           0
                          )
@@ -358,6 +362,7 @@ function _prepare(nodes::Matrix{T},
                           gram,
                           chol,
                           nothing,
+                          nothing,
                           cond,
                           0
                          )
@@ -400,6 +405,7 @@ function _construct(spline::NormalSpline{T, RK},
                           cleanup ? nothing : spline._gram,
                           cleanup ? nothing : spline._chol,
                           mu,
+                          nothing,
                           spline._cond,
                           0
                          )
@@ -555,14 +561,18 @@ function _evaluate_smoothing_spline(spline::NormalSpline{T, RK},
     end
 
     spline_values = Vector{T}(undef, m)
-    nodes_all = [spline._nodes spline._nodes_b]
-    n_1_all = n_1 + n_1_b
-    h_values = Vector{T}(undef, n_1_all)
+    h_values = Vector{T}(undef, n_1)
+    h_values_b = Vector{T}(undef, n_1_b)
+    
+    # COH TODO - use only active constraints
     @inbounds for p = 1:m
-        for i = 1:n_1_all
-            h_values[i] = _rk(spline._kernel, pts[:,p], nodes_all[:,i])
+        for i = 1:n_1
+            h_values[i] = _rk(spline._kernel, pts[:,p], spline._nodes[:,i])
         end
-        spline_values[p] = sum(spline._mu .* h_values)
+        for i = 1:n_1_b
+            h_values_b[i] = _rk(spline._kernel, pts[:,p], spline._nodes_b[:,i])
+        end
+        spline_values[p] = sum(spline._mu .* [h_values; h_values_b; -h_values_b])
     end
 
     return spline_values
