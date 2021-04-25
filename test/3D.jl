@@ -61,7 +61,7 @@
         @test isapprox(σ[1], u[1], atol = 1e-3)
 
         cond = estimate_cond(s)
-        @test cond ≈ 1.0e6
+        @test cond ≈ 1.0e4
 
         iq = estimate_accuracy(s)
         @test iq ≈ 15.0
@@ -124,7 +124,7 @@
         @test all(isapprox.(g, grad, atol = 0.01))
 
         cond = estimate_cond(s)
-        @test cond ≈ 1.0e8
+        @test cond ≈ 1.0e6
 
         iq = estimate_accuracy(s) + 1.0
         @test iq ≈ 13.0 atol = 1.0

@@ -68,7 +68,7 @@
     @testset "Test 1D-RK_H2 kernel" begin
         spl = interpolate(x, u, RK_H2(0.1))  # create spline
         cond = estimate_cond(spl)              # get estimation of the gram matrix condition number
-        @test cond ≈ 1.0e7
+        @test cond ≈ 1.0e5
         σ = evaluate(spl, x)           # evaluate spline in nodes
         @test σ ≈ u                    # compare with exact function values in nodes
 

@@ -285,7 +285,8 @@ function _get_cond(nodes::Matrix{T},
 end
 
 # ```
-# Get estimation of the Gram matrix condition number
+# Get estimation of the Gram matrix condition number.
+# Based on:
 # Brás, C.P., Hager, W.W. & Júdice, J.J. An investigation of feasible descent algorithms for estimating the condition number of a matrix. TOP 20, 791–809 (2012).
 # https://link.springer.com/article/10.1007/s11750-010-0161-9
 # ```
@@ -327,6 +328,12 @@ function _estimate_cond(gram::Matrix{T},
         @. x = T(0.0)
         x[idx] = T(1.0)
     end
-    cond = T(10.0)^floor(log10(mat_norm * gamma))
+    cond = T(10.0)^floor(log10(mat_norm * gamma)
+    )
+    # Usually this algorithm over estimates the condition number.
+    # Here the esitamtion is lowered.
+    if cond >= T(1.0e6)
+        cond /= T(100.)
+    end
     return cond
 end

@@ -9,9 +9,27 @@
     # v = [4.0]                                  # function first derivative values
 
     @testset "Test 1D_B_RK_H0 kernel" begin
-        # spl = smooth(x, u, x_b, u_lb, u_ub, 100, RK_H0(0.1))  # create spline
-        # cond = estimate_cond(spl)                 # get estimation of the gram matrix condition number
-        # @test cond ≈ 1000.0
+        x = [0., 5., 10.]
+        x_b = [1., 2., 3., 4., 6., 7., 8., 9.]
+        u = [0.0, 10.0, 0.]
+        u_ub = [0.1, 1., 1., 10., 10., 1., 1., 0.1]
+        u_lb = [0., 0., 0., 0., 0., 0., 0., 0.]
+        points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
+
+        spl = smooth(x, u, x_b, u_lb, u_ub, 100, RK_H0(0.1))
+        res = evaluate_smoothing_spline(spl, points)
+        res_rounded = round.(res; digits=3)
+        @test res_rounded ≈ [0.0, 0.1, 0.55, 1.0, 5.5, 10.0, 5.5, 1.0, 0.55, 0.1, -0.0]
+        @test spl._active ≈ [8, 1, 6, 3, 0, 0, 0, 0]
+        cond = estimate_cond(spl)
+        @test cond ≈ 10000.0
+
+        spl_inter = interpolate(x, u, RK_H0(0.1))
+        res_inter = evaluate(spl_inter, points)
+        res_inter_rounded = round.(res_inter; digits=3)
+        @test res_inter_rounded ≈ [0.0, 1.999, 3.999, 5.998, 7.999, 10.0, 7.999, 5.998, 3.999, 1.999, 0.0]
+        cond_inter = estimate_cond(spl_inter)
+        @test cond_inter ≈ 100.0
 
 
         # σ = evaluate(spl, x)                # evaluate spline in nodes
@@ -33,7 +51,29 @@
         # @test σ ≈ f[3] atol = 0.05
     end
 
-    # @testset "Test 1D_B_H1 kernel" begin
+     @testset "Test 1D_B_H1 kernel" begin
+         x = [0., 5., 10.]
+         x_b = [1., 2., 3., 4., 6., 7., 8., 9.]
+         u = [0.0, 10.0, 0.]
+         u_ub = [0.1, 1., 1., 10., 10., 1., 1., 0.1]
+         u_lb = [0., 0., 0., 0., 0., 0., 0., 0.]
+         points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
+
+         spl = smooth(x, u, x_b, u_lb, u_ub, 100, RK_H1(0.1))
+         res = evaluate_smoothing_spline(spl, points)
+         res_rounded = round.(res; digits=3)
+         @test res_rounded ≈ [0.0, 0.039, 0.0, 1.0, 6.321, 10.0, 6.321, 1.0, 0.0, 0.039, 0.0]
+         @test spl._active ≈ [6, 3, -7, -2, 0, 0, 0, 0]
+         cond = estimate_cond(spl)
+         @test cond ≈ 1.0e7
+
+         spl_inter = interpolate(x, u, RK_H1(0.1))
+         res_inter = evaluate(spl_inter, points)
+         res_inter_rounded = round.(res_inter; digits=3)
+         @test res_inter_rounded ≈ [0.0, 2.913, 5.627, 7.885, 9.428, 10.0, 9.428, 7.885, 5.627, 2.913, -0.0]
+         cond_inter = estimate_cond(spl_inter)
+         @test cond_inter ≈ 100000.0
+
     #     spl = interpolate(x, u, RK_H1(0.1))  # create spline
     #     cond = estimate_cond(spl)              # get estimation of the gram matrix condition number
     #     @test cond ≈ 1.0e5
@@ -69,7 +109,7 @@
     #     spl = construct(spl, u, v)
     #     σ = evaluate_one(spl, p[3])
     #     @test σ ≈ f[3] atol = 0.05
-    # end
+     end
     # #
     # @testset "Test 1D_B_H2 kernel" begin
     #     spl = interpolate(x, u, RK_H2(0.1))  # create spline

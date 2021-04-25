@@ -48,7 +48,7 @@
         rk = RK_H1(0.001)
         s = interpolate(p, u, rk)
         cond = estimate_cond(s)
-        @test cond ≈ 1.e11
+        @test cond ≈ 1.e9
 
         σ = evaluate(s, t)
         @test isapprox(σ[1], u[5], atol = 1e-5)
@@ -88,7 +88,7 @@
         rk = RK_H1(eps)
         s = interpolate(p, u, dp, es, du, rk)
         cond = estimate_cond(s)
-        @test cond == 1.0e14
+        @test cond == 1.0e12
 
         σ1 = evaluate_one(s, p[:,5])
         @test !isapprox(σ1[1], u[5], atol = 0.1)
@@ -123,7 +123,7 @@
         rk = RK_H2(0.01)
         s = interpolate(p, u, rk)
         cond = estimate_cond(s)
-        @test cond ≈ 1e11
+        @test cond ≈ 1e9
 
         σ = evaluate(s, t)
         @test isapprox(σ[1], u[5], atol = 1e-5)
@@ -155,7 +155,7 @@
         rk = RK_H2(eps)
         s = interpolate(p, u, dp, es, du, rk)
         cond = estimate_cond(s)
-        @test cond == 1.0e13
+        @test cond == 1.0e11
 
         σ1 = evaluate_one(s, p[:,5])
         @test !isapprox(σ1[1], u[5], atol = 0.1)
@@ -215,7 +215,7 @@ end
     @testset "Test 2D-Bis-RK_H1 kernel" begin
         spl = prepare(p, RK_H1(0.001))
         c = estimate_cond(spl)
-        @test c ≈ 1.0e11
+        @test c ≈ 1.0e9
 
         spl = construct(spl, u)
         vt = [1.0, 3.0]
@@ -238,7 +238,7 @@ end
     @testset "Test 2D-Bis-RK_H2 kernel" begin
         spl = prepare(p, RK_H2(0.001))
         c = estimate_cond(spl)
-        @test c ≈ 1.0e15
+        @test c ≈ 1.0e13
 
         spl = construct(spl, u)
 

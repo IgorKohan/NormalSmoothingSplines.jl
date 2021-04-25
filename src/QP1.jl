@@ -311,7 +311,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                   cleanup ? nothing : spline._gram,
                   cleanup ? nothing : spline._chol,
                   mu,
-                  ak,
+                  active,
                   spline._cond,
                   f_opt ? -nit_done : nit_done
                  )
