@@ -15,44 +15,33 @@
     for i in 11:14
         u[i] = -0.2 * i + 3.0
     end</code></pre><pre><code class="language-julia">    # An estimation of the &#39;scaling parameter&#39; the spline being built with
-    ε_estimation = estimate_epsilon(x, RK_H1())</code></pre><pre><code class="language-none">0.7125346243561634</code></pre><pre><code class="language-julia">    # Build a differentiable spline by values of function in nodes
+    ε_estimation = estimate_epsilon(x, RK_H1())</code></pre><pre><code class="language-none">0.7125346243561634</code></pre><pre><code class="language-">    # Build a differentiable spline by values of function in nodes
     # (a spline built with RK_H0 kernel is a continuous function,
     #  a spline built with RK_H1 kernel is a continuously differentiable function,
     #  a spline built with RK_H2 kernel is a twice continuously differentiable function).
     # Here value of the &#39;scaling parameter&#39; ε is estimated in the interpolate procedure.
     spline = prepare(x, RK_H1())
-
+    
     # A value of the &#39;scaling parameter&#39; the spline was built with.
-    ε = get_epsilon(spline)</code></pre><pre><code class="language-none">0.7125346243561634</code></pre><pre><code class="language-julia">    # An estimation of the Gram matrix condition number
-    cond = estimate_cond(spline)</code></pre><pre><code class="language-none">100000.0</code></pre><pre><code class="language-julia">    # Construct the spline for given &#39;u&#39; values
+    ε = get_epsilon(spline)</code></pre><pre><code class="language-">    # An estimation of the Gram matrix condition number
+    cond = estimate_cond(spline)</code></pre><pre><code class="language-">    # Construct the spline for given &#39;u&#39; values
     spline = construct(spline, u)
 
     # An estimation of the interpolation accuracy -
     # number of significant digits in the function value interpolation result.
-    significant_digits = estimate_accuracy(spline)</code></pre><pre><code class="language-none">10</code></pre><pre><code class="language-julia">    p = collect(1.0:0.2:20)        # evaluation points
-    σ = evaluate(spline, p)</code></pre><p><img src="../images/1d-usage/example-1a.svg" alt="Example 1A"/></p><pre><code class="language-julia">    dσ = similar(p)
+    significant_digits = estimate_accuracy(spline)</code></pre><pre><code class="language-">    p = collect(1.0:0.2:20)        # evaluation points
+    σ = evaluate(spline, p)
+    σ = nothing                    # hide</code></pre><p><img src="../images/1d-usage/example-1a.svg" alt="Example 1A"/></p><pre><code class="language-">    dσ = similar(p)
     for i=1:length(p)
         dσ[i] = evaluate_derivative(spline, p[i])
-    end</code></pre><p><img src="../images/1d-usage/example-1a-der.svg" alt="Example 2A"/></p><p>Evaluate the spline at some points:</p><pre><code class="language-julia">    p = [3.1, 8.1, 12.1, 18.1]
-    σ = evaluate(spline, p)</code></pre><pre><code class="language-none">4-element Vector{Float64}:
- 0.005233851076580365
- 1.0029716012422787
- 0.580397869650044
- 0.0001617014065642408</code></pre><p>Evaluate the spline derivatives at the same evaluation points:</p><pre><code class="language-julia">    dσ = similar(p)
+    end</code></pre><p><img src="../images/1d-usage/example-1a-der.svg" alt="Example 2A"/></p><p>Evaluate the spline at some points:</p><pre><code class="language-">    p = [3.1, 8.1, 12.1, 18.1]
+    σ = evaluate(spline, p)</code></pre><p>Evaluate the spline derivatives at the same evaluation points:</p><pre><code class="language-">    dσ = similar(p)
     for i=1:length(p)
         dσ[i] = evaluate_derivative(spline, p[i])
     end
-    dσ</code></pre><pre><code class="language-none">4-element Vector{Float64}:
-  0.05769978169875167
-  0.021648276551950937
- -0.19742466975786324
-  0.0013127826539937107</code></pre><p>Construct spline by different function values in nodes and evaluate new spline at the same evaluation points:</p><pre><code class="language-julia">    u2 = 2.0 .* u
+    dσ</code></pre><p>Construct spline by different function values in nodes and evaluate new spline at the same evaluation points:</p><pre><code class="language-">    u2 = 2.0 .* u
     spline = construct(spline, u2)
-    σ = evaluate(spline, p)</code></pre><pre><code class="language-none">4-element Vector{Float64}:
- 0.01046770215316073
- 2.0059432024845574
- 1.160795739300088
- 0.0003234028131284816</code></pre><p>B)</p><pre><code class="language-julia">    using NormalSmoothingSplines
+    σ = evaluate(spline, p)</code></pre><p>B)</p><pre><code class="language-julia">    using NormalSmoothingSplines
 
     x = collect(1.0:1.0:20)       # function nodes
     u = x.*0.0                    # function values in nodes
@@ -190,7 +179,7 @@
    mae = maximum(abs.(f .- σ))</code></pre><pre><code class="language-none">0.1793905250813515</code></pre><p>Value of function <span>$\phi$</span> at evaluation point <span>$p = [0.5; 0.5]$</span></p><pre><code class="language-julia">    p = [0.5; 0.5]
     x = p[1]
     y = p[2]
-    f = (2.0*cos(10.0*x)*sin(10.0*y) + sin(10.0*x*y))/3.0</code></pre><pre><code class="language-none">0.018150344404862222</code></pre><p>Value of spline at the evaluation point:</p><pre><code class="language-julia">    σ = evaluate_one(spline, p)</code></pre><pre><code class="language-none">0.01716689461581211</code></pre><p>Difference of function <span>$\phi$</span> and spline values at the evaluation point:</p><pre><code class="language-julia">    diff = f - σ</code></pre><pre><code class="language-none">0.0009834497890501108</code></pre><p>Gradient of function <span>$\phi$</span> at the evaluation point</p><pre><code class="language-julia">    g1 = (10.0*y*cos(10.0*x*y) - 20.0*sin(10.0*x)*sin(10.0*y))/3.0
+    f = (2.0*cos(10.0*x)*sin(10.0*y) + sin(10.0*x*y))/3.0</code></pre><pre><code class="language-none">0.018150344404862222</code></pre><p>Value of spline at the evaluation point:</p><pre><code class="language-">    σ = evaluate_one(spline, p)</code></pre><p>Difference of function <span>$\phi$</span> and spline values at the evaluation point:</p><pre><code class="language-">    diff = f - σ</code></pre><p>Gradient of function <span>$\phi$</span> at the evaluation point</p><pre><code class="language-julia">    g1 = (10.0*y*cos(10.0*x*y) - 20.0*sin(10.0*x)*sin(10.0*y))/3.0
     g2 = (20.0*cos(10.0*x)*cos(10.0*y) + 10.0*x*cos(10.0*x*y))/3.0
     f_grad = [g1; g2]</code></pre><pre><code class="language-none">2-element Vector{Float64}:
  -7.465477789499732
@@ -301,7 +290,7 @@
    mae = maximum(abs.(f .- σ))</code></pre><pre><code class="language-none">0.01913080887528129</code></pre><p>Value of function <span>$\phi$</span> at evaluation point <span>$p = [0.5; 0.5]$</span></p><pre><code class="language-julia">    p = [0.5; 0.5]
     x = p[1]
     y = p[2]
-    f = (2.0*cos(10.0*x)*sin(10.0*y) + sin(10.0*x*y))/3.0</code></pre><pre><code class="language-none">0.018150344404862222</code></pre><p>Value of spline at the evaluation point:</p><pre><code class="language-julia">    σ = evaluate_one(spline, p)</code></pre><pre><code class="language-none">0.017335270262151425</code></pre><p>Difference of function <span>$\phi$</span> and spline values at the evaluation point:</p><pre><code class="language-julia">    diff = f - σ</code></pre><pre><code class="language-none">0.000815074142710797</code></pre><p>Gradient of function <span>$\phi$</span> at the evaluation point</p><pre><code class="language-julia">    g1 = (10.0*y*cos(10.0*x*y) - 20.0*sin(10.0*x)*sin(10.0*y))/3.0
+    f = (2.0*cos(10.0*x)*sin(10.0*y) + sin(10.0*x*y))/3.0</code></pre><pre><code class="language-none">0.018150344404862222</code></pre><p>Value of spline at the evaluation point:</p><pre><code class="language-">    σ = evaluate_one(spline, p)</code></pre><p>Difference of function <span>$\phi$</span> and spline values at the evaluation point:</p><pre><code class="language-">    diff = f - σ</code></pre><p>Gradient of function <span>$\phi$</span> at the evaluation point</p><pre><code class="language-julia">    g1 = (10.0*y*cos(10.0*x*y) - 20.0*sin(10.0*x)*sin(10.0*y))/3.0
     g2 = (20.0*cos(10.0*x)*cos(10.0*y) + 10.0*x*cos(10.0*x*y))/3.0
     f_grad = [g1; g2]</code></pre><pre><code class="language-none">2-element Vector{Float64}:
  -7.465477789499732
@@ -319,4 +308,4 @@ significant_digits = estimate_accuracy(spline)</code></pre><p>In a case when est
 spline = interpolate(x, u, RK_H2(e_smaller))
 cond = estimate_cond(spline)
 significant_digits = estimate_accuracy(spline)
-σ = evaluate(spline, p)</code></pre><p>Taking into account new <code>cond</code> and <code>significant_digits</code> values we decide of making further correction of the scaling parameter.</p><p>For further information, see <a href="https://igorkohan.github.io/NormalSmoothingSplines.jl/stable/Parameter-Choice/">Selecting a good value of the scaling parameter</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Public-API/">« Public API</a><a class="docs-footer-nextpage" href="../Normal-Splines-Method/">Normal Splines Method »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Sunday 25 April 2021 16:29">Sunday 25 April 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+σ = evaluate(spline, p)</code></pre><p>Taking into account new <code>cond</code> and <code>significant_digits</code> values we decide of making further correction of the scaling parameter.</p><p>For further information, see <a href="https://igorkohan.github.io/NormalSmoothingSplines.jl/stable/Parameter-Choice/">Selecting a good value of the scaling parameter</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Public-API/">« Public API</a><a class="docs-footer-nextpage" href="../Normal-Splines-Method/">Normal Splines Method »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Sunday 25 April 2021 21:56">Sunday 25 April 2021</span>. Using Julia version 1.6.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
