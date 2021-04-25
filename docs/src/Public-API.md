@@ -4,9 +4,11 @@
 
 | Function                            | Description                                                                                        |
 |:----------------------------------- |:-------------------------------------------------------------------------------------------------- |
-|```prepare_smoothing_spline```       |Prepare the smoothing spline by constructing and factoring a Gram matrix of the problem.            |
-|```construct_smoothing_spline```     |Construct the smoothing spline by calculating its coefficients.                                     |
-|```smooth```                         |Prepare and construct the smoothing spline.                                                         |
+|```prepare_approximation```          |Prepare the smoothing spline by constructing and factoring a Gram matrix of the problem.            |
+|```construct_approximation```        |Construct the smoothing spline by calculating its coefficients.                                     |
+|```approximate```                    |Prepare and construct the smoothing spline.                                                         |
+|```evaluate_approximation```         |Evaluate the smoothing spline values.                                                               |
+|```evaluate_approximation_at```      |Evaluate the smoothing spline value at the required location                                        |
 |```prepare```                        |Prepare the interpolating spline by constructing and factoring a Gram matrix of the problem.        |
 |```construct```                      |Construct the interpolating spline by calculating its coefficients.                                 |
 |```interpolate```                    |Prepare and construct the interpolating spline.                                                     |
@@ -22,9 +24,11 @@
 
 ## Functions
 ```@docs
-prepare_smoothing_spline
-construct_smoothing_spline
-smooth
+prepare_approximation
+construct_approximation
+approximate
+evaluate_approximation
+evaluate_approximation_at
 prepare
 construct
 interpolate
