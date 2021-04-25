@@ -15,7 +15,11 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T,
 # Initialization..
     m1 = size(spline._nodes, 2)
     m2 = size(spline._nodes_b, 2)
-    b = [spline._values; spline._values_ub; -spline._values_lb]
+    if m1 > 0
+        b = [spline._values; spline._values_ub; -spline._values_lb]
+    else
+        b = [spline._values_ub; -spline._values_lb]
+    end
 
     m1p1 = m1 + 1
     m2pm2 = m2 + m2
@@ -52,7 +56,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T,
     i_del = 0
 
 # Main cycle
-    mat = Matrix{T}(undef, nak, nak)
+    mat = nothing
     nit_done = 0
 #
     @inbounds for it = 1:nit
@@ -69,9 +73,6 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T,
         end
 
         if nak > 0
-
-            mat = Matrix{T}(undef, nak, nak) # TODO delete DEBUGGING
-
 #  Calculating Gram matrix factorization and lambda
 
             f_add = false # TODO DEBUGGING
@@ -81,6 +82,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 # if it > 1
                 #     error("_qp1: !f_add && !f_del.") # TODO DEBUGGING
                 # end
+                mat = Matrix{T}(undef, nak, nak)
                 si = T(1.)
                 sj = T(1.)
                 @inbounds for j = 1:nak
@@ -132,7 +134,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T,
         end #if nak > 0
 #..Calculating Gram matrix factorization and lambda
 
-        if nak == m && nak > m1
+        if nak == m
             @inbounds for i = 1:n
                 mu[i] = lambda[i]
             end
@@ -309,7 +311,7 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                   spline._d_values_ub,
                   spline._min_bound,
                   cleanup ? nothing : spline._gram,
-                  cleanup ? nothing : spline._chol,
+                  cleanup ? nothing : mat,
                   mu,
                   active,
                   spline._cond,
