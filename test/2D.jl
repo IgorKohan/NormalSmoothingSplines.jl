@@ -17,18 +17,18 @@
         @test isapprox(σ[2], u[5], atol = 1e-5)
         @test isapprox(σ[3], u[5], atol = 1e-5)
 
-        σ1 = evaluate_one(s, t[:,1])
+        σ1 = evaluate_at(s, t[:,1])
         @test σ1[1] ≈ u[5]
 
         rk = RK_H0()
-        s = prepare(p, rk) # prepare spline
-        s = construct(s, u) # construct spline
+        s = prepare_interpolation(p, rk) # prepare_interpolation spline
+        s = construct_interpolation(s, u) # construct_interpolation spline
         σ1 = evaluate(s, t) # evaluate spline in points
         @test σ[1] ≈ u[5]
         @test isapprox(σ[2], u[5], atol = 1e-5)
         @test isapprox(σ[3], u[5], atol = 1e-5)
 
-        s = construct(s, u2)
+        s = construct_interpolation(s, u2)
         σ2 = evaluate(s, t)
         @test σ2[1] ≈ u2[5]
         @test isapprox(σ2[2], u2[5], atol = 1e-5)
@@ -59,18 +59,18 @@
         @test abs(grad[1]) < 1.0e-5 && abs(grad[2]) < 1.0e-5
 
         rk = RK_H1()
-        s = prepare(p, rk) # prepare spline
+        s = prepare_interpolation(p, rk) # prepare_interpolation spline
         cond = estimate_cond(s)
         @test cond ≈ 100.0
 
-        s = construct(s, u) # construct spline
+        s = construct_interpolation(s, u) # construct_interpolation spline
 
         σ1 = evaluate(s, t) # evaluate spline in points
         @test isapprox(σ[1], u[5], atol = 1e-5)
         @test isapprox(σ[2], u[5], atol = 1e-5)
         @test isapprox(σ[3], u[5], atol = 1e-5)
 
-        s = construct(s, u2)
+        s = construct_interpolation(s, u2)
         σ2 = evaluate(s, t)
         @test isapprox(σ[1], u[5], atol = 1e-5)
         @test isapprox(σ2[2], u2[5], atol = 1e-5)
@@ -90,7 +90,7 @@
         cond = estimate_cond(s)
         @test cond == 1.0e12
 
-        σ1 = evaluate_one(s, p[:,5])
+        σ1 = evaluate_at(s, p[:,5])
         @test !isapprox(σ1[1], u[5], atol = 0.1)
 
 # Same test with extended precision
@@ -101,8 +101,8 @@
         u = Double64.(u)
         du = Double64.(du)
         t = Double64.(t)
-        s = prepare(p, dp, es, rk)
-        s = construct(s, u, du)
+        s = prepare_interpolation(p, dp, es, rk)
+        s = construct_interpolation(s, u, du)
         σ = evaluate(s, p)
         @test all(isapprox.(σ, u, atol = 1e-5))
 
@@ -134,18 +134,18 @@
         @test abs(grad[1]) < 1.0e-5 && abs(grad[2]) < 1.0e-5
 
         rk = RK_H2()
-        s = prepare(p, rk) # prepare spline
+        s = prepare_interpolation(p, rk) # prepare_interpolation spline
         cond = estimate_cond(s)
         @test cond ≈ 100.0
 
-        s = construct(s, u) # construct spline
+        s = construct_interpolation(s, u) # construct_interpolation spline
 
         σ1 = evaluate(s, t) # evaluate spline in points
         @test isapprox(σ[1], u[5], atol = 1e-5)
         @test isapprox(σ[2], u[5], atol = 1e-5)
         @test isapprox(σ[3], u[5], atol = 1e-5)
 
-        s = construct(s, u2)
+        s = construct_interpolation(s, u2)
         σ2 = evaluate(s, t)
         @test isapprox(σ[1], u[5], atol = 1e-5)
         @test isapprox(σ2[2], u2[5], atol = 1e-5)
@@ -157,7 +157,7 @@
         cond = estimate_cond(s)
         @test cond == 1.0e11
 
-        σ1 = evaluate_one(s, p[:,5])
+        σ1 = evaluate_at(s, p[:,5])
         @test !isapprox(σ1[1], u[5], atol = 0.1)
 
         q = estimate_accuracy(s)
@@ -171,8 +171,8 @@
         u = Double64.(u)
         du = Double64.(du)
         t = Double64.(t)
-        s = prepare(p, dp, es, rk)
-        s = construct(s, u, du)
+        s = prepare_interpolation(p, dp, es, rk)
+        s = construct_interpolation(s, u, du)
 
         σ = evaluate(s, p)
         @test all(isapprox.(σ, u, atol = 1e-5))
@@ -190,71 +190,71 @@ end
     t = collect([-1.0 3.0; 0.0 3.0; 1.0 3.0; 2.0 3.0; 3.0 3.0]')  # evaluation points
 
     @testset "Test 2D-Bis-RK_H0 kernel" begin
-        spl = prepare(p, RK_H0(0.001))                   # prepare spline
+        spl = prepare_interpolation(p, RK_H0(0.001))                   # prepare_interpolation spline
         c = estimate_cond(spl)                                # get estimation of the problem's Gram matrix condition number
         @test c ≈ 100000.0
 
-        spl = construct(spl, u)                          # construct spline
+        spl = construct_interpolation(spl, u)                          # construct_interpolation spline
         vt = [1.0, 3.0]
-        σ = evaluate_one(spl, vt)                            # evaluate spline in the node
+        σ = evaluate_at(spl, vt)                            # evaluate spline in the node
         @test σ ≈ 1.0
 
         wt = [0.0, 3.0]
-        σ1 = evaluate_one(spl, wt)
+        σ1 = evaluate_at(spl, wt)
 
         u2 = [0.0; 0.0; 0.0; 0.0; 2.0]
-        spl = construct(spl, u2)
-        σ2 = evaluate_one(spl, wt)
+        spl = construct_interpolation(spl, u2)
+        σ2 = evaluate_at(spl, wt)
         @test σ2 ≈ 2.0 * σ1
 
-        spl = interpolate(p, u, RK_H0(0.001))            # prepare and construct spline
-        σ = evaluate_one(spl, vt)
+        spl = interpolate(p, u, RK_H0(0.001))            # prepare_interpolation and construct_interpolation spline
+        σ = evaluate_at(spl, vt)
         @test σ ≈ 1.0
     end
 
     @testset "Test 2D-Bis-RK_H1 kernel" begin
-        spl = prepare(p, RK_H1(0.001))
+        spl = prepare_interpolation(p, RK_H1(0.001))
         c = estimate_cond(spl)
         @test c ≈ 1.0e9
 
-        spl = construct(spl, u)
+        spl = construct_interpolation(spl, u)
         vt = [1.0, 3.0]
-        σ = evaluate_one(spl, vt)
+        σ = evaluate_at(spl, vt)
         @test σ ≈ 1.0
 
         wt = [0.0, 3.0]
-        σ1 = evaluate_one(spl, wt)
+        σ1 = evaluate_at(spl, wt)
 
         u2 = [0.0; 0.0; 0.0; 0.0; 2.0]
-        spl = construct(spl, u2)
-        σ2 = evaluate_one(spl, wt)
+        spl = construct_interpolation(spl, u2)
+        σ2 = evaluate_at(spl, wt)
         @test σ2 ≈ 2.0 * σ1
 
         spl = interpolate(p, u, RK_H1(0.001))
-        σ = evaluate_one(spl, vt)
+        σ = evaluate_at(spl, vt)
         @test σ ≈ 1.0
     end
 
     @testset "Test 2D-Bis-RK_H2 kernel" begin
-        spl = prepare(p, RK_H2(0.001))
+        spl = prepare_interpolation(p, RK_H2(0.001))
         c = estimate_cond(spl)
         @test c ≈ 1.0e13
 
-        spl = construct(spl, u)
+        spl = construct_interpolation(spl, u)
 
         vt = [1.0, 3.0]
-        σ = evaluate_one(spl, vt)
+        σ = evaluate_at(spl, vt)
         @test σ ≈ 1.0
 
         wt = [0.0, 3.0]
-        σ1 = evaluate_one(spl, wt)
+        σ1 = evaluate_at(spl, wt)
         u2 = [0.0; 0.0; 0.0; 0.0; 2.0]
-        spl = construct(spl, u2)
-        σ2 = evaluate_one(spl, wt)
+        spl = construct_interpolation(spl, u2)
+        σ2 = evaluate_at(spl, wt)
         @test σ2 ≈ 2.0 * σ1
 
         spl = interpolate(p, u, RK_H2(0.001))
-        σ = evaluate_one(spl, vt)
+        σ = evaluate_at(spl, vt)
         @test σ ≈ 1.0
     end
 end

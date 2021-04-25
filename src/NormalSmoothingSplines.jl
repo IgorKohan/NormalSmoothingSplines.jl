@@ -1,17 +1,17 @@
 module NormalSmoothingSplines
 
-#### Approximating splines inteface definition.
+###### Inteface definition
 export prepare_approximation, construct_approximation, approximate
-export evaluate_approximation, evaluate_approximation_at #, evaluate_gradient
+export prepare_interpolation, construct_interpolation, interpolate
+export evaluate, evaluate_at
+export evaluate_gradient, evaluate_derivative
 export NormalSpline, RK_H0, RK_H1, RK_H2
+
 export get_epsilon, estimate_epsilon, get_cond, estimate_cond
 export estimate_accuracy
-# -- 1D case --
-#export evaluate_derivative
-# --
-###
+######
+
 #include("./examples/Main.jl")
-###
 
 using LinearAlgebra
 
@@ -175,9 +175,9 @@ function approximate(nodes::Matrix{T},
 end
 
 """
-`evaluate_approximation(spline::NormalSpline{T, RK}, points::Matrix{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+`evaluate(spline::NormalSpline{T, RK}, points::Matrix{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Evaluate the approximating spline values at `points` locations.
+Evaluate the spline values at `points` locations.
 
 # Arguments
 - `spline: constructed `NormalSpline` object.
@@ -188,15 +188,15 @@ Evaluate the approximating spline values at `points` locations.
 
 Return: `Vector{T}` of the spline values at the locations defined in `points`.
 """
-function evaluate_approximation(spline::NormalSpline{T, RK}, points::Matrix{T}
-                               ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
-    return _evaluate_approximation(spline, points)
+function evaluate(spline::NormalSpline{T, RK}, points::Matrix{T}
+                 ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    return _evaluate(spline, points)
 end
 
 """
-`evaluate_approximation_at(spline::NormalSpline{T, RK}, point::Vector{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+`evaluate_at(spline::NormalSpline{T, RK}, point::Vector{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Evaluate the approximating spline value at the `point` location.
+Evaluate the spline value at the `point` location.
 
 # Arguments
 - `spline`: constructed `NormalSpline` object.
@@ -205,9 +205,29 @@ Evaluate the approximating spline value at the `point` location.
 
 Return: the spline value at the location defined in `point`.
 """
-function evaluate_approximation_at(spline::NormalSpline{T, RK}, point::Vector{T}
-                                  ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
-    return _evaluate_approximation(spline, reshape(point, :, 1))[1]
+function evaluate_at(spline::NormalSpline{T, RK}, point::Vector{T}
+                    ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    return _evaluate(spline, reshape(point, :, 1))[1]
+end
+
+"""
+`evaluate_gradient(spline::NormalSpline{T, RK}, point::Vector{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+Evaluate gradient of the spline at the location defined in `point`.
+
+# Arguments
+- `spline`: the `NormalSpline` object returned by `interpolate` or `construct` function.
+- `point`: location at which gradient value is evaluating.
+           This should be a vector of size `n`, where `n` is dimension of the sampled space.
+
+Note: Gradient of spline built with reproducing kernel RK_H0 does not exist at the spline nodes.
+
+Return: `Vector{T}` - gradient of the spline at the `point` location.
+"""
+function evaluate_gradient(spline::NormalSpline{T, RK},
+                           point::Vector{T}
+                          ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    return _evaluate_gradient(spline, point)
 end
 
 ########
@@ -371,9 +391,9 @@ function approximate(nodes::Vector{T},
 end
 
 """
-`evaluate_approximation(spline::NormalSpline{T, RK}, points::Vector{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+`evaluate(spline::NormalSpline{T, RK}, points::Vector{T}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Evaluate the 1D approximating spline values at the `points` locations.
+Evaluate the 1D spline values at the `points` locations.
 
 # Arguments
 - `spline`: constructed `NormalSpline` object.
@@ -382,15 +402,15 @@ Evaluate the 1D approximating spline values at the `points` locations.
 
 Return: spline value at the `point` location.
 """
-function evaluate_approximation(spline::NormalSpline{T, RK}, points::Vector{T}
+function evaluate(spline::NormalSpline{T, RK}, points::Vector{T}
                                ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
-    return _evaluate_approximation(spline, Matrix(points'))
+    return _evaluate(spline, Matrix(points'))
 end
 
 """
-`evaluate_approximation_at(spline::NormalSpline{T, RK}, point::T) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+`evaluate_at(spline::NormalSpline{T, RK}, point::T) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Evaluate the 1D approximating spline value at the `point` location.
+Evaluate the 1D spline value at the `point` location.
 
 # Arguments
 - `spline`: constructed `NormalSpline` object.
@@ -398,12 +418,33 @@ Evaluate the 1D approximating spline value at the `point` location.
 
 Return: spline value at the `point` location.
 """
-function evaluate_approximation_at(spline::NormalSpline{T, RK},
+function evaluate_at(spline::NormalSpline{T, RK},
                                        point::T
                                       ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
     v_points = Vector{T}(undef, 1)
     v_points[1] = point
-    return _evaluate_approximation(spline, Matrix(v_points'))[1]
+    return _evaluate(spline, Matrix(v_points'))[1]
+end
+
+"""
+`evaluate_derivative(spline::NormalSpline{T, RK}, point::T) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+Evaluate the 1D spline derivative at the `point` location.
+
+# Arguments
+- `spline`: the `NormalSpline` object returned by `interpolate` or `construct` function.
+- `point`: location at which spline derivative is evaluating.
+
+Note: Derivative of spline built with reproducing kernel RK_H0 does not exist at the spline nodes.
+
+Return: the spline derivative value at the `point` location.
+"""
+function evaluate_derivative(spline::NormalSpline{T, RK},
+                             point::T
+                            ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    v_points = Vector{T}(undef, 1)
+    v_points[1] = point
+    return _evaluate_gradient(spline, v_points)[1]
 end
 
 """

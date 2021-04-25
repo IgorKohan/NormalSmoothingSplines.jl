@@ -148,6 +148,32 @@ end
 
 ###################
 
+function _evaluate(spline::NormalSpline{T, RK}, points::Matrix{T},
+                  ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    if !isnothing(spline._nodes_b) || !isnothing(spline._d_nodes_b)
+        _evaluate_approximation(spline, points)
+    else
+        _evaluate_interpolation(spline, points)
+    end
+end
+
+function _evaluate_gradient(spline::NormalSpline{T, RK},
+                            point::Vector{T}
+                           ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    if !isnothing(spline._nodes_b) || !isnothing(spline._d_nodes_b)
+        _evaluate_approximation_gradient(spline, point)
+    else
+        _evaluate_interpolation_gradient(spline, point)
+    end
+end
+
+function _evaluate_approximation_gradient(spline::NormalSpline{T, RK},
+                                          point::Vector{T}
+                                         ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    # TODO - implement                                         
+    error("_evaluate_approximation_gradient: Not implemented.")
+end
+
 function _evaluate_approximation(spline::NormalSpline{T, RK}, points::Matrix{T},
                                 ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
     if isnothing(spline)

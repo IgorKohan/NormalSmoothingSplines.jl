@@ -11,8 +11,8 @@
         σ = evaluate(spl, x)                # evaluate spline in nodes
         @test σ ≈ u                         # compare with exact function values in nodes
 
-        spl = prepare(x, RK_H0(0.1))
-        spl = construct(spl, u)
+        spl = prepare_interpolation(x, RK_H0(0.1))
+        spl = construct_interpolation(spl, u)
         σ = evaluate(spl, x)
         @test σ ≈ u
         #
@@ -23,7 +23,7 @@
         # compare spline values with exact function values in evaluation point
         @test all(isapprox.(σ, f, atol = 0.05))
 
-        σ = evaluate_one(spl, p[3])
+        σ = evaluate_at(spl, p[3])
         @test σ ≈ f[3] atol = 0.05
     end
 
@@ -59,9 +59,9 @@
         # compare spline values with exact function values in evaluation point
         @test all(isapprox.(σ, f, atol = 1e-2))
 
-        spl = prepare(x, s, RK_H1(0.1))
-        spl = construct(spl, u, v)
-        σ = evaluate_one(spl, p[3])
+        spl = prepare_interpolation(x, s, RK_H1(0.1))
+        spl = construct_interpolation(spl, u, v)
+        σ = evaluate_at(spl, p[3])
         @test σ ≈ f[3] atol = 0.05
     end
     #

@@ -48,14 +48,14 @@
 
     @testset "Test 3D-RK_H0 kernel" begin
         s = interpolate(p, u, RK_H0(0.00001))
-        σ1 = evaluate_one(s, [1.0; 0.0; 0.01])
+        σ1 = evaluate_at(s, [1.0; 0.0; 0.01])
         @test isapprox(σ1, u[1], atol = 1e-3)
         σ = evaluate(s, [1.0 0.5; 0.0 0.5; 0.01 0.5])
         @test isapprox(σ[1], u[1], atol = 1e-3)
 
-        s = prepare(p, RK_H0(0.00001)) # prepare spline
-        s = construct(s, u) # construct spline
-        σ1 = evaluate_one(s, [1.0; 0.0; 0.01])
+        s = prepare_interpolation(p, RK_H0(0.00001)) # prepare_interpolation spline
+        s = construct_interpolation(s, u) # construct_interpolation spline
+        σ1 = evaluate_at(s, [1.0; 0.0; 0.01])
         @test isapprox(σ1, u[1], atol = 1e-3)
         σ = evaluate(s, [1.0 0.5; 0.0 0.5; 0.01 0.5])
         @test isapprox(σ[1], u[1], atol = 1e-3)
@@ -75,14 +75,14 @@
 
     @testset "Test 3D-RK_H1 kernel" begin
         s = interpolate(p, u, dp, es, du, RK_H1(0.1))
-        σ1 = evaluate_one(s, [1.0; 0.0; 0.01])
+        σ1 = evaluate_at(s, [1.0; 0.0; 0.01])
         @test isapprox(σ1, u[1], atol = 1e-2)
         σ = evaluate(s, [1.0 0.5; 0.0 0.5; 0.01 0.5])
         @test isapprox(σ[1], u[1], atol = 1e-2)
 
-        s = prepare(p, dp, es, RK_H1(0.1)) # prepare spline
-        s = construct(s, u, du) # construct spline
-        σ1 = evaluate_one(s, [1.0; 0.0; 0.01])
+        s = prepare_interpolation(p, dp, es, RK_H1(0.1)) # prepare_interpolation spline
+        s = construct_interpolation(s, u, du) # construct_interpolation spline
+        σ1 = evaluate_at(s, [1.0; 0.0; 0.01])
         @test isapprox(σ1, u[1], atol = 1e-2)
         σ = evaluate(s, [1.0 0.5; 0.0 0.5; 0.01 0.5])
         @test isapprox(σ[1], u[1], atol = 1e-2)
@@ -108,14 +108,14 @@
 
     @testset "Test 3D-RK_H2 kernel" begin
         s = interpolate(p, u, dp, es, du, RK_H2(0.1))
-        σ1 = evaluate_one(s, [1.0; 0.0; 0.01])
+        σ1 = evaluate_at(s, [1.0; 0.0; 0.01])
         @test isapprox(σ1, u[1], atol = 2e-2)
         σ = evaluate(s, [1.0 0.5; 0.0 0.5; 0.01 0.5])
         @test isapprox(σ[1], u[1], atol = 2e-2)
 
-        s = prepare(p, dp, es, RK_H2(0.1)) # prepare spline
-        s = construct(s, u, du) # construct spline
-        σ1 = evaluate_one(s, [1.0; 0.0; 0.01])
+        s = prepare_interpolation(p, dp, es, RK_H2(0.1)) # prepare_interpolation spline
+        s = construct_interpolation(s, u, du) # construct_interpolation spline
+        σ1 = evaluate_at(s, [1.0; 0.0; 0.01])
         @test isapprox(σ1, u[1], atol = 2e-2)
         σ = evaluate(s, [1.0 0.5; 0.0 0.5; 0.01 0.5])
         @test isapprox(σ[1], u[1], atol =2e-2)

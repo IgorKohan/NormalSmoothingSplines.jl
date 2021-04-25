@@ -17,7 +17,7 @@
         points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
 
         spl = approximate(x, u, x_b, u_lb, u_ub, 100, RK_H0(0.1))
-        res = evaluate_approximation(spl, points)
+        res = evaluate(spl, points)
         res_rounded = round.(res; digits=3)
         @test res_rounded ≈ [0.0, 0.1, 0.55, 1.0, 5.5, 10.0, 5.5, 1.0, 0.55, 0.1, -0.0]
         @test spl._active ≈ [8, 1, 6, 3, 0, 0, 0, 0]
@@ -60,7 +60,7 @@
          points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
 
          spl = approximate(x, u, x_b, u_lb, u_ub, 100, RK_H1(0.1))
-         res = evaluate_approximation(spl, points)
+         res = evaluate(spl, points)
          res_rounded = round.(res; digits=3)
          @test res_rounded ≈ [0.0, 0.039, 0.0, 1.0, 6.321, 10.0, 6.321, 1.0, 0.0, 0.039, 0.0]
          @test spl._active ≈ [6, 3, -7, -2, 0, 0, 0, 0]

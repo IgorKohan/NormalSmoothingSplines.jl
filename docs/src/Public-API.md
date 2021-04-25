@@ -7,15 +7,13 @@
 |```prepare_approximation```          |Prepare the smoothing spline by constructing and factoring a Gram matrix of the problem.            |
 |```construct_approximation```        |Construct the smoothing spline by calculating its coefficients.                                     |
 |```approximate```                    |Prepare and construct the smoothing spline.                                                         |
-|```evaluate_approximation```         |Evaluate the smoothing spline values.                                                               |
-|```evaluate_approximation_at```      |Evaluate the smoothing spline value at the required location                                        |
-|```prepare```                        |Prepare the interpolating spline by constructing and factoring a Gram matrix of the problem.        |
-|```construct```                      |Construct the interpolating spline by calculating its coefficients.                                 |
+|```prepare_interpolation```          |Prepare the interpolating spline by constructing and factoring a Gram matrix of the problem.        |
+|```construct_interpolation```        |Construct the interpolating spline by calculating its coefficients.                                 |
 |```interpolate```                    |Prepare and construct the interpolating spline.                                                     |
-|```evaluate```                       |Evaluate the spline value at the required locations                                                 |
-|```evaluate_one```                   |Evaluate the spline value at the required location                                                  |
+|```evaluate```                       |Evaluate the spline values.                                                                         |
+|```evaluate_at```                    |Evaluate the spline value at the required location.                                                 |
 |```evaluate_gradient```              |Evaluate gradient of the spline at the required location.                                           |
-|```evaluate_derivative```            |Evaluate the 1D spline derivative at the required location.                                         |
+|```evaluate_derivative```            |Evaluate the 1-D spline derivative at the required location.                                        |
 |```estimate_accuracy```              |Estimate accuracy of the function interpolation result.                                             |
 |```estimate_cond```                  |Estimate the Gram matrix 1-norm condition number.                                                   |
 |```estimate_epsilon```               |Estimate the 'scaling parameter' of Bessel potential space the spline being built in.               |
@@ -27,13 +25,11 @@
 prepare_approximation
 construct_approximation
 approximate
-evaluate_approximation
-evaluate_approximation_at
-prepare
-construct
+prepare_interpolation
+construct_interpolation
 interpolate
 evaluate
-evaluate_one
+evaluate_at
 evaluate_gradient
 evaluate_derivative
 estimate_accuracy
