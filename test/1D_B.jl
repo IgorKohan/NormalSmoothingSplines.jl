@@ -31,7 +31,6 @@
         cond_inter = estimate_cond(spl_inter)
         @test cond_inter ≈ 100.0
 
-
         # σ = evaluate(spl, x)                # evaluate spline in nodes
         # @test σ ≈ u                         # compare with exact function values in nodes
         #
@@ -73,6 +72,20 @@
          @test res_inter_rounded ≈ [0.0, 2.913, 5.627, 7.885, 9.428, 10.0, 9.428, 7.885, 5.627, 2.913, -0.0]
          cond_inter = estimate_cond(spl_inter)
          @test cond_inter ≈ 100000.0
+
+         x = [0., 5., 10.]
+         x_b = [1., 2., 3., 4., 6., 7., 8., 9.]
+         u = [0.0, 10.0, 0.]
+         u_ub = [Inf, 1., Inf, 10., 10., 1., 1., 0.1]
+         u_lb = [0., 0., 0., 0., 0., 0., 0., -Inf]
+         points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
+         spl = approximate(x, u, x_b, u_lb, u_ub, 100, RK_H1(0.1))
+         res = evaluate(spl, points)
+         res_rounded = round.(res; digits=3)
+         @test res_rounded ≈ [-0.0, 0.0, 1.0, 4.821, 9.028, 10.0, 5.77, 1.0, -0.0, -0.009, 0.0]
+         @test spl._active ≈ [6, 2, -7, -1, 0, 0, 0, 0]
+         cond = estimate_cond(spl)
+         @test cond ≈ 1.0e7
 
     #     spl = interpolate(x, u, RK_H1(0.1))  # create spline
     #     cond = estimate_cond(spl)              # get estimation of the gram matrix condition number

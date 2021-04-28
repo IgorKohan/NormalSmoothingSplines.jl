@@ -36,7 +36,7 @@ function _prepare_interpolation(nodes::Matrix{T},
             ε *= T(2.0)
             kernel = RK_H2(ε)
         else
-            error("incorrect `kernel` type.")
+            error("Incorrect `kernel` type.")
         end
     end
 
@@ -182,7 +182,7 @@ function _prepare_interpolation(nodes::Matrix{T},
             ε *= T(2.5)
             kernel = RK_H2(ε)
         else
-            error("incorrect `kernel` type.")
+            error("Incorrect `kernel` type.")
         end
     end
 

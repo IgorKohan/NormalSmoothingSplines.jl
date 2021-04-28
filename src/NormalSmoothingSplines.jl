@@ -11,8 +11,6 @@ export get_epsilon, estimate_epsilon, get_cond, estimate_cond
 export estimate_accuracy
 ######
 
-#include("./examples/Main.jl")
-
 using LinearAlgebra
 
 abstract type ReproducingKernel end
@@ -77,9 +75,13 @@ include("./NormalInterpolatingSplines.jl")
 include("./ReproducingKernels.jl")
 include("./GramMatrix.jl")
 include("./Utils.jl")
-include("./QP1.jl")
+include("./QP.jl")
 include("./Interpolate.jl")
 include("./Approximate.jl")
+
+##
+include("./examples/Main.jl")
+##
 
 """
 `prepare_approximation(nodes::Matrix{T}, nodes_b::Matrix{T}, kernel::RK = RK_H0())
@@ -203,7 +205,7 @@ Evaluate the spline value at the `point` location.
 - `point`: location at which spline value is evaluating.
            This should be a vector of size `n`, where `n` is dimension of the sampled space.
 
-Return: the spline value at the location defined in `point`.
+Return: spline value at the location defined in `point`.
 """
 function evaluate_at(spline::NormalSpline{T, RK}, point::Vector{T}
                     ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
@@ -320,7 +322,7 @@ Assess accuracy of interpolation results by analyzing residuals.
 # Arguments
 - `spline`: constructed `NormalSpline` object.
 
-Return: an estimation of the number of significant digits in the interpolation result.
+Return: estimation of the number of significant digits in the interpolation result.
 """
 function estimate_accuracy(spline::NormalSpline{T, RK}) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
     return _estimate_accuracy(spline)
@@ -437,7 +439,7 @@ Evaluate the 1D spline derivative at the `point` location.
 
 Note: Derivative of spline built with reproducing kernel RK_H0 does not exist at the spline nodes.
 
-Return: the spline derivative value at the `point` location.
+Return: spline derivative value at the `point` location.
 """
 function evaluate_derivative(spline::NormalSpline{T, RK},
                              point::T
@@ -533,7 +535,7 @@ Get a value of the Gram matrix spectral condition number. It is obtained by mean
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
 
-Return: a value of the Gram matrix spectral condition number.
+Return: value of the Gram matrix spectral condition number.
 """
 function get_cond(nodes::Matrix{T}, d_nodes::Matrix{T}, es::Matrix{T}, kernel::RK = RK_H1()
                  ) where {T <: AbstractFloat, RK <: ReproducingKernel_1}

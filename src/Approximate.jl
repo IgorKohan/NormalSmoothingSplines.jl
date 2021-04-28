@@ -55,7 +55,7 @@ function _prepare_approximation(nodes::Matrix{T},
              ε *= T(2.0)
              kernel = RK_H2(ε)
          else
-             error("incorrect `kernel` type.")
+             error("Incorrect `kernel` type.")
          end
      end
 
@@ -101,20 +101,56 @@ function _construct_approximation(spline::NormalSpline{T, RK},
                                   nit::Int,
                                   cleanup::Bool = false
                                  ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
-    if(length(values) != size(spline._nodes, 2))
-        error("Number of data values does not correspond to the number of nodes.")
+    m1 = size(spline._nodes, 2)
+    m2 = size(spline._nodes_b, 2)
+
+    if length(values) != m1
+        error("Number of 'values' does not correspond to the number of interpolating nodes.")
     end
+    if length(values_lb) != m2
+        error("Number of 'values_lb' does not correspond to the number of approximating nodes.")
+    end
+    if length(values_ub) != m2
+        error("Number of 'values_ub' does not correspond to the number of approximating nodes.")
+    end
+
     if isnothing(spline._chol)
         error("Gram matrix was not factorized.")
     end
 
-# TODO: check if the interpolating spline is the solution
-#       values_lb <= values <= values_ub
-#       if yes then do not smooth
-#..
+    umax = T(0.)
+    @inbounds for i = 1:m2
+        val = abs(values_lb[i])
+        if val != Inf && val > umax
+            umax = val
+        end
+        val = abs(values_ub[i])
+        if val != Inf && val > umax
+            umax = val
+        end
+    end
 
-    values_b = similar(values_lb)
-    values_b .= (values_lb .+ values_ub) ./ T(2.0)
+    values_b = mu = zeros(T, m2)
+    incorrect_bounds::Bool = false
+    @inbounds for i = 1:m2
+        if abs(values_lb[i]) == Inf && abs(values_ub[i]) == Inf
+            incorrect_bounds = true
+            break
+        end
+        if abs(values_lb[i]) != Inf && abs(values_ub[i]) != Inf
+            values_b[i] = (values_lb[i] + values_ub[i]) / T(2.0)
+        end
+        if abs(values_lb[i]) == Inf
+            values_b[i] = values_ub[i] - umax
+        end
+        if abs(values_ub[i]) == Inf
+            values_b[i] = values_lb[i] + umax
+        end
+    end
+    if incorrect_bounds
+        error("Both values_ub[i]) and values_lb[i]) are set to Inf.")
+    end
+
     values_all = [values; values_b]
     mu = Vector{T}(undef, size(spline._gram, 1))
     ldiv!(mu, spline._chol, values_all)
@@ -142,7 +178,8 @@ function _construct_approximation(spline::NormalSpline{T, RK},
                           0
                          )
 
-    spline = _qp1(spline, nit, T(1.e-10), true, cleanup)
+    eps = T(1.e-10)
+    spline = _qp(spline, nit, eps, true, cleanup)
     return spline
 end
 
@@ -170,7 +207,7 @@ end
 function _evaluate_approximation_gradient(spline::NormalSpline{T, RK},
                                           point::Vector{T}
                                          ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
-    # TODO - implement                                         
+    # TODO - implement
     error("_evaluate_approximation_gradient: Not implemented.")
 end
 

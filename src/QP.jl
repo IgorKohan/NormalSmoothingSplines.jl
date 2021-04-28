@@ -1,6 +1,6 @@
-function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T,
-              logging::Bool = true, cleanup::Bool = false
-             ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
+             logging::Bool = true, cleanup::Bool = false
+            ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
 
     if logging == true
         path = "0_qp1.log"
@@ -26,21 +26,18 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T,
     m = m1 + m2
     n = m1 + m2 + m2
 
-    # first case of constructing feasible point
     nak = m1
-    npk = m2pm2
     ak = zeros(Int, m)
-    pk = zeros(Int, npk)
-
     @inbounds for j = 1:nak
         ak[j] = j
     end
 
-    @inbounds for j = 1:npk
+    pk = zeros(Int, m2pm2)
+    npk = m2pm2
+    @inbounds for j = 1:m2pm2
         pk[j] = j + m1
     end
 
-    #.. first case of constructing feasible point
     mu = zeros(T, n)
     @inbounds for j = 1:m
         mu[j] = spline._mu[j]
@@ -174,8 +171,6 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T,
         end
 
 # Calculating t_min, i_min
-        # ek = ones(T, npk) # TODO DEL DEBUG
-        # tk = zeros(T, npk) # TODO DEL DEBUG
         si = T(1.)
         sj = T(1.)
         t_min::T = t_max
@@ -202,14 +197,14 @@ function _qp1(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 s += mu[j] * si * sj * spline._gram[ii, jj]
             end #.. for j = 1:n
 
-            # ek[i] = eik # TODO DEL DEBUG
-            # tk[i] = (b[pk[i]] - s) / eik # TODO DEL DEBUG
             if eik > T(eps)
                 ii = pk[i]
-                tik = (b[ii] - s) / eik
-                if tik < t_min
-                    i_min = ii
-                    t_min = tik
+                if abs(b[ii]) != Inf
+                    tik = (b[ii] - s) / eik
+                    if tik < t_min
+                        i_min = ii
+                        t_min = tik
+                    end
                 end
             end
         end #.. for i = 1:npk

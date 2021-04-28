@@ -1,7 +1,7 @@
 """
 `prepare_interpolation(nodes::Matrix{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Prepare the interpolating normal spline by constructing and factoring a Gram matrix of the problem.
+Prepare the interpolating normal spline by constructing and factoring Gram matrix of the problem.
 Initialize the `NormalSpline` object.
 # Arguments
 - `nodes`: function value interpolation nodes.
@@ -13,7 +13,7 @@ Initialize the `NormalSpline` object.
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
 
-Return: the prepared `NormalSpline` object.
+Return: prepared `NormalSpline` object.
 """
 function prepare_interpolation(nodes::Matrix{T},
                                kernel::RK = RK_H0()
@@ -31,7 +31,7 @@ completely initializing the `NormalSpline` object.
 - `spline`: the prepared `NormalSpline` object.
 - `values`: function values at interpolation nodes.
 
-Return: the constructed `NormalSpline` object.
+Return: constructed `NormalSpline` object.
 """
 function construct_interpolation(spline::NormalSpline{T, RK},
                                  values::Vector{T}
@@ -55,8 +55,7 @@ Prepare and construct the interpolating normal spline.
               `RK_H0` if the spline is constructing as a continuous function,
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
-
-Return: the constructed `NormalSpline` object.
+Return: constructed `NormalSpline` object.
 """
 function interpolate(nodes::Matrix{T},
                      values::Vector{T},
@@ -92,7 +91,7 @@ Initialize the `NormalSpline` object.
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
 
-Return: the prepared `NormalSpline` object.
+Return: prepared `NormalSpline` object.
 """
 function prepare_interpolation(nodes::Matrix{T},
                                d_nodes::Matrix{T},
@@ -114,7 +113,7 @@ completely initializing the `NormalSpline` object.
 - `values`: function values at interpolation nodes.
 - `d_values`: function directional derivative values at function derivative nodes.
 
-Return: the constructed `NormalSpline` object.
+Return: constructed `NormalSpline` object.
 """
 function construct_interpolation(spline::NormalSpline{T, RK},
                                  values::Vector{T},
@@ -148,7 +147,7 @@ Prepare and construct the interpolating normal spline.
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
 
-Return: the constructed `NormalSpline` object.
+Return: constructed `NormalSpline` object.
 """
 function interpolate(nodes::Matrix{T},
                      values::Vector{T},
@@ -178,7 +177,7 @@ Initialize the `NormalSpline` object.
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
 
-Return: the prepared `NormalSpline` object.
+Return: prepared `NormalSpline` object.
 """
 function prepare_interpolation(nodes::Vector{T},
                                kernel::RK = RK_H0()
@@ -201,7 +200,7 @@ Prepare and construct the 1D interpolating normal spline.
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
 
-Return: the pconstructed `NormalSpline` object.
+Return: constructed `NormalSpline` object.
 """
 function interpolate(nodes::Vector{T},
                      values::Vector{T},
@@ -227,7 +226,7 @@ Initialize the `NormalSpline` object.
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
 
-Return: the prepared `NormalSpline` object.
+Return: prepared `NormalSpline` object.
 """
 function prepare_interpolation(nodes::Vector{T},
                                d_nodes::Vector{T},
@@ -257,7 +256,7 @@ prepare_interpolation and construct the 1D interpolating normal spline.
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
 
-Return: the constructed `NormalSpline` object.
+Return: constructed `NormalSpline` object.
 """
 function interpolate(nodes::Vector{T},
                      values::Vector{T},
