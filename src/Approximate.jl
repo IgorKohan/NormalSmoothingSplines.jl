@@ -210,7 +210,7 @@ function _construct_approximation(spline::NormalSpline{T, RK},
     if m1 > 0
         values_all = [values; values_b]
     else
-        values_all = [values_b]
+        values_all = values_b
     end
 
     mu = Vector{T}(undef, size(spline._gram, 1))
