@@ -277,7 +277,7 @@ function _evaluate_interpolation(spline::NormalSpline{T, RK},
 
     if size(points, 1) != size(spline._nodes, 1)
         if size(points, 1) == 1 && size(points, 2) > 1
-            error("Incorrect first dimension of the `points` parameter (use 'evaluate_one' function for evaluating the spline at one point).")
+            error("Incorrect first dimension of the `points` parameter (use 'evaluate_at' function for evaluating the spline at one point).")
         else
             error("Incorrect first dimension of the `points` parameter (the spline was built in the space of different dimension).")
         end

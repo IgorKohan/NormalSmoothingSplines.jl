@@ -83,6 +83,32 @@ include("./Approximate.jl")
 #include("./examples/Main.jl")
 ##
 
+
+"""
+`prepare_approximation(nodes_b::Matrix{T}, kernel::RK = RK_H0())
+                       where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+Prepare the approximating normal spline by constructing and factoring a Gram matrix of the problem.
+Initialize the `NormalSpline` object.
+# Arguments
+- `nodes_b`: function value approximation nodes.
+          This should be an `n×n_1_b` matrix, where `n` is dimension of the sampled space and
+          `n_1_b` is the number of function value approximation nodes. It means that each column in the matrix defines one node.
+- `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
+            It must be a struct object of the following type:
+              `RK_H0` if the spline is constructing as a continuous function,
+              `RK_H1` if the spline is constructing as a differentiable function,
+              `RK_H2` if the spline is constructing as a twice differentiable function.
+
+Return: prepared `NormalSpline` object.
+"""
+function prepare_approximation(nodes_b::Matrix{T},
+                               kernel::RK = RK_H0()
+                              ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+     spline = _prepare_approximation(nodes_b, kernel)
+     return spline
+end
+
 """
 `prepare_approximation(nodes::Matrix{T}, nodes_b::Matrix{T}, kernel::RK = RK_H0())
                        where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
@@ -114,8 +140,33 @@ end
 
 """
 `construct_approximation(spline::NormalSpline{T, RK},
-                            values::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T}, nit::Int)
-                            where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+                         values_lb::Vector{T}, values_ub::Vector{T}, nit::Int)
+                         where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+construct the approximating normal spline by calculating its coefficients and
+completely initializing the `NormalSpline` object.
+# Arguments
+- `spline`: the partly initialized `NormalSpline` object returned by `prepare` function.
+- `values_lb`: function lower bound values at approximation nodes
+- `values_ub`: function upper bound values at approximation nodes
+- `nit`: maximum number of algorithm iterations
+
+Return: constructed `NormalSpline` object.
+"""
+function construct_approximation(spline::NormalSpline{T, RK},
+                                 values_lb::Vector{T},
+                                 values_ub::Vector{T},
+                                 nit::Int = 100
+                                ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+    spline = _construct_approximation(spline, values_lb, values_ub, nit)
+    return spline
+end
+
+
+"""
+`construct_approximation(spline::NormalSpline{T, RK},
+                         values::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T}, nit::Int)
+                         where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 construct the approximating normal spline by calculating its coefficients and
 completely initializing the `NormalSpline` object.
@@ -129,13 +180,44 @@ completely initializing the `NormalSpline` object.
 Return: constructed `NormalSpline` object.
 """
 function construct_approximation(spline::NormalSpline{T, RK},
-                                    values::Vector{T},
-                                    values_lb::Vector{T},
-                                    values_ub::Vector{T},
-                                    nit::Int = 100
-                                   ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+                                 values::Vector{T},
+                                 values_lb::Vector{T},
+                                 values_ub::Vector{T},
+                                 nit::Int = 100
+                                ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
     spline = _construct_approximation(spline, values, values_lb, values_ub, nit)
     return spline
+end
+
+"""
+`approximate(nodes::Matrix{T}, values::Vector{T}, nodes_b::Matrix{T}, values_lb::Vector{T}, values_ub::Vector{T},
+             nit::Int, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+
+Prepare and construct the approximating normal spline.
+# Arguments
+- `nodes_b`: function value approximation nodes.
+        This should be an `n×n_1_b` matrix, where `n` is dimension of the sampled space and
+        `n_1_b` is the number of function value approximation nodes. It means that each column in the matrix defines one node.
+- `values_lb`: function lower bound values at approximation nodes
+- `values_ub`: function upper bound values at approximation nodes
+- `nit`: maximum number of algorithm iterations
+- `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
+            It must be a struct object of the following type:
+              `RK_H0` if the spline is constructing as a continuous function,
+              `RK_H1` if the spline is constructing as a differentiable function,
+              `RK_H2` if the spline is constructing as a twice differentiable function.
+
+Return: constructed `NormalSpline` object.
+"""
+function approximate(nodes_b::Matrix{T},
+                     values_lb::Vector{T},
+                     values_ub::Vector{T},
+                     nit::Int = 100,
+                     kernel::RK = RK_H0()
+                    ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+     spline = _prepare_approximation(nodes_b, kernel)
+     spline = _construct_approximation(spline, values_lb, values_ub, nit)
+     return spline
 end
 
 """

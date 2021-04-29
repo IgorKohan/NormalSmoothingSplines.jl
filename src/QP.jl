@@ -1,20 +1,24 @@
 function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
-             logging::Bool = true, cleanup::Bool = false
+             logging::Bool = false, cleanup::Bool = false
             ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
 
     if logging == true
-        path = "0_qp1.log"
+        path = "0_qp.log"
         if ispath(path)
            rm(path)
         end
         open(path,"a") do io
-            println(io,"_qp1 started.\r\n")
+            println(io,"_qp started.\r\n")
         end
     end
 
 # Initialization..
-    m1 = size(spline._nodes, 2)
+    m1 = 0
+    if !isnothing(spline._nodes)
+        m1 = size(spline._nodes, 2)
+    end
     m2 = size(spline._nodes_b, 2)
+
     if m1 > 0
         b = [spline._values; spline._values_ub; -spline._values_lb]
     else
@@ -72,13 +76,15 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
         if nak > 0
 #  Calculating Gram matrix factorization and lambda
 
-            f_add = false # TODO DEBUGGING
-            f_del = false # TODO DEBUGGING
+            f_add = false # TODO delete
+            f_del = false # TODO delete
+
+            if it == nit / 2 # TODO change
+                f_add = false
+                f_del = false
+            end
 
             if !f_add && !f_del
-                # if it > 1
-                #     error("_qp1: !f_add && !f_del.") # TODO DEBUGGING
-                # end
                 mat = Matrix{T}(undef, nak, nak)
                 si = T(1.)
                 sj = T(1.)
@@ -106,7 +112,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 try
                     mat = cholesky!(mat)
                 catch
-                    error("_qp1: Gram 'mat' matrix is degenerate.")
+                    error("_qp: Gram 'mat' matrix is degenerate.")
                 end
 
             end #if !f_add && !f_del
@@ -215,6 +221,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 mu[i] += t_min * (lambda[i] - mu[i])
             end
             f_add = true
+            f_del = false
             i_add = i_min
             nak += 1
             ak[nak] = i_min
@@ -225,9 +232,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                     break
                 end
             end
-            if k == 0  # TODO DEBUGGING
-                error("_qp1: Cannot find 'i_min' index in 'pk'.")
-            end
+
             kp1 = k + 1
             @inbounds for i = kp1:npk
                 pk[i-1] = pk[i]
@@ -255,6 +260,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                   end
                   f_opt = false
                   f_del = true
+                  f_add = false
                   i_del = ii
                   npk += 1
                   pk[npk] = ii
@@ -315,7 +321,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
 
     if logging == true
         open(path,"a") do io
-             println(io,"\r\n_qp1 completed.")
+             println(io,"\r\n_qp completed.")
         end
     end
     return spl

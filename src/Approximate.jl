@@ -1,20 +1,42 @@
-function _prepare_approximation(nodes::Matrix{T},
+function _prepare_approximation(nodes_b::Matrix{T},
+                                kernel::RK
+                               ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+
+    spline = _prepare_approximation(nothing, nodes_b, kernel)
+    return spline
+end
+
+function _prepare_approximation(nodes::Union{Matrix{T}, Nothing},
                                 nodes_b::Matrix{T},
                                 kernel::RK
                                ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
-     n = size(nodes, 1)
-     n_1 = size(nodes, 2)
+
+     if isnothing(nodes)
+         n_1 = 0
+         n = size(nodes_b, 1)
+     else
+        n = size(nodes, 1)
+        n_1 = size(nodes, 2)
+        if n != size(nodes_b, 1)
+            error("Matrices 'nodes' and 'nodes_b' have mismatched dimensions.")
+        end
+     end
 
      n_b = size(nodes_b, 1)
      n_1_b = size(nodes_b, 2)
-     # TODO test n == n_b
 
      min_bound = Vector{T}(undef, n)
-     compression::T = 0
+     compression::T = T(0.)
+     maxx::T = T(0.)
      @inbounds for i = 1:n
-         min_bound[i] = nodes[i,1]
-         maxx::T = nodes[i,1]
-         for j = 2:n_1
+         if !isnothing(nodes)
+             min_bound[i] = nodes[i,1]
+             maxx = nodes[i,1]
+         else
+             min_bound[i] = nodes_b[i,1]
+             maxx = nodes_b[i,1]
+         end
+         for j = 1:n_1
              min_bound[i] = min(min_bound[i], nodes[i,j])
              maxx = max(maxx, nodes[i,j])
          end
@@ -29,7 +51,11 @@ function _prepare_approximation(nodes::Matrix{T},
          error("Cannot prepare the spline: `nodes` data are not correct.")
      end
 
-     t_nodes = similar(nodes)
+     if !isnothing(nodes)
+         t_nodes = similar(nodes)
+     else
+         t_nodes = nothing
+     end
      @inbounds for j = 1:n_1
          for i = 1:n
              t_nodes[i,j] = (nodes[i,j] - min_bound[i]) / compression
@@ -42,7 +68,11 @@ function _prepare_approximation(nodes::Matrix{T},
          end
      end
 
-     t_nodes_all = [t_nodes t_nodes_b]
+     if !isnothing(nodes)
+         t_nodes_all = [t_nodes t_nodes_b]
+     else
+         t_nodes_all = t_nodes_b
+     end
 
      if T(kernel.ε) == T(0.0)
          ε = _estimate_ε(t_nodes_all)
@@ -95,20 +125,46 @@ function _prepare_approximation(nodes::Matrix{T},
 end
 
 function _construct_approximation(spline::NormalSpline{T, RK},
+                                  values_lb::Vector{T},
+                                  values_ub::Vector{T},
+                                  nit::Int,
+                                  cleanup::Bool = false
+                                 ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
+
+    if !isnothing(spline._nodes)
+         error("Spline object is not correctly prepared ('spline._nodes' is not empty).")
+    end
+
+    spline = _construct_approximation(spline, T[], values_lb, values_ub, nit, cleanup)
+    return spline
+end
+
+function _construct_approximation(spline::NormalSpline{T, RK},
                                   values::Vector{T},
                                   values_lb::Vector{T},
                                   values_ub::Vector{T},
                                   nit::Int,
                                   cleanup::Bool = false
                                  ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
-    m1 = size(spline._nodes, 2)
+
+    if isnothing(spline._nodes) && isnothing(spline._nodes_b)
+        error("Spline object is not correctly prepared ('spline._nodes' is empty and 'spline._nodes_b' is empty).")
+    end
+    if isnothing(spline._nodes_b)
+        error("Spline object is not correctly prepared ('spline._nodes_b' is empty).")
+    end
+
+    m1 = 0
+    if !isnothing(spline._nodes)
+        m1 = size(spline._nodes, 2)
+    end
     m2 = size(spline._nodes_b, 2)
 
     if length(values) != m1
-        error("Number of 'values' does not correspond to the number of interpolating nodes.")
+        error("Number of 'values' does not correspond to the number of interpolating nodes ('spline._nodes').")
     end
     if length(values_lb) != m2
-        error("Number of 'values_lb' does not correspond to the number of approximating nodes.")
+        error("Number of 'values_lb' does not correspond to the number of approximating nodes ('spline._nodes_b').")
     end
     if length(values_ub) != m2
         error("Number of 'values_ub' does not correspond to the number of approximating nodes.")
@@ -148,10 +204,15 @@ function _construct_approximation(spline::NormalSpline{T, RK},
         end
     end
     if incorrect_bounds
-        error("Both values_ub[i]) and values_lb[i]) are set to Inf.")
+        error("Incorrect_bounds. Both 'values_ub[i]' and 'values_lb[i]' are set to Inf.")
     end
 
-    values_all = [values; values_b]
+    if m1 > 0
+        values_all = [values; values_b]
+    else
+        values_all = [values_b]
+    end
+
     mu = Vector{T}(undef, size(spline._gram, 1))
     ldiv!(mu, spline._chol, values_all)
 
@@ -220,17 +281,21 @@ function _evaluate_approximation(spline::NormalSpline{T, RK}, points::Matrix{T},
         error("Spline coefficients were not calculated.")
     end
 
-    # TODO dimenion checks
-    # if size(points, 1) != size(spline._nodes, 1)
-    #     if size(points, 1) == 1 && size(points, 2) > 1
-    #         error("Incorrect first dimension of the `points` parameter (use 'evaluate_one' function for evaluating the spline at one point).")
-    #     else
-    #         error("Incorrect first dimension of the `points` parameter (the spline was built in the space of different dimension).")
-    #     end
-    # end
+    if size(points, 1) != size(spline._nodes_b, 1)
+        if size(points, 1) == 1 && size(points, 2) > 1
+            error("Incorrect first dimension of the `points` parameter (use 'evaluate_at' function for evaluating the spline at one point).")
+        else
+            error("Incorrect first dimension of the `points` parameter (the spline was built in the space of different dimension).")
+        end
+    end
 
-    n = size(spline._nodes, 1)
-    n_1 = size(spline._nodes, 2)
+    if isnothing(spline._nodes)
+       n_1 = 0
+    else
+       n_1 = size(spline._nodes, 2)
+    end
+
+    n = size(spline._nodes_b, 1)
     n_1_b = size(spline._nodes_b, 2)
     m = size(points, 2)
 
@@ -247,13 +312,17 @@ function _evaluate_approximation(spline::NormalSpline{T, RK}, points::Matrix{T},
 
     # COH TODO - use only active constraints
     @inbounds for p = 1:m
-        for i = 1:n_1
-            h_values[i] = _rk(spline._kernel, pts[:,p], spline._nodes[:,i])
-        end
         for i = 1:n_1_b
             h_values_b[i] = _rk(spline._kernel, pts[:,p], spline._nodes_b[:,i])
         end
-        spline_values[p] = sum(spline._mu .* [h_values; h_values_b; -h_values_b])
+        if n_1 > 0
+            for i = 1:n_1
+                h_values[i] = _rk(spline._kernel, pts[:,p], spline._nodes[:,i])
+            end
+            spline_values[p] = sum(spline._mu .* [h_values; h_values_b; -h_values_b])
+        else
+            spline_values[p] = sum(spline._mu .* [h_values_b; -h_values_b])
+        end
     end
 
     return spline_values
