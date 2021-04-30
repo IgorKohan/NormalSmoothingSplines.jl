@@ -162,7 +162,6 @@ function construct_approximation(spline::NormalSpline{T, RK},
     return spline
 end
 
-
 """
 `construct_approximation(spline::NormalSpline{T, RK},
                          values::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T}, nit::Int)

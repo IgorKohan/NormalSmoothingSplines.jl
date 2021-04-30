@@ -1,8 +1,9 @@
 function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
-             logging::Bool = false, cleanup::Bool = false
+             cleanup::Bool = false
             ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
 
-    if logging == true
+    logging::Bool = true # DEBUGGING
+    if logging
         path = "0_qp.log"
         if ispath(path)
            rm(path)
@@ -136,6 +137,60 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
 
         end #if nak > 0
 #..Calculating Gram matrix factorization and lambda
+
+        if logging
+            open(path,"a") do io
+                 println(io,"\r\nIteration:", it)
+
+                 norm::T = T(0.)
+                 @inbounds for j = 1:m1
+                     for i = 1:m1
+                         norm += spline._gram[j, i]*mu[j]*mu[i]
+                     end
+                 end
+                 @inbounds for j = m1p1:m
+                     for i = m1p1:m
+                         norm += spline._gram[j, i]*(mu[j] - mu[j+m2])*(mu[i] - mu[i+m2])
+                     end
+                 end
+                 @inbounds for i = 1:m1
+                     for j = m1p1:m
+                         norm += T(2.0) * spline._gram[i, j]*mu[i]*(mu[j] - mu[j+m2])
+                     end
+                 end
+                 norm = sqrt(norm)
+                 norm = round(norm; digits=0)
+                 println(io,"\r\nSpline norm:", norm)
+
+                 println(io,"\r\nNumber of active inequality constraints:", nak-m1)
+                 println(io,"\r\nActive inequality constraints:\r\n")
+                 l_ak = copy(ak)
+                 for i= m1p1:nak
+                     if l_ak[i] > m
+                        l_ak[i] -= m
+                        l_ak[i] = -l_ak[i]
+                     else
+                        l_ak[i] -= m1
+                     end
+                 end
+                 if nak > m1
+                     println(io, l_ak[m1p1:end])
+                 end
+                 println(io,"\r\nNumber of inactive inequality constraints:", npk)
+                 println(io,"\r\nInactive inequality constraints:\r\n")
+                 l_pk = copy(pk)
+                 for i= 1:npk
+                     if l_pk[i] > m
+                        l_pk[i] -= m
+                        l_pk[i] = -l_pk[i]
+                     else
+                        l_pk[i] -= m1
+                     end
+                 end
+                 println(io, l_pk)
+                 println(io, "\r\n")
+            end
+        end
 
         if nak == m
             @inbounds for i = 1:n
@@ -283,7 +338,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
 
     active = zeros(Int, m2)
     k = 0
-    @inbounds for i = 1:nak
+    @inbounds for i = m1p1:nak
         ii = ak[i]
         if ii <= m1
             continue
@@ -319,9 +374,61 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                   f_opt ? -nit_done : nit_done
                  )
 
-    if logging == true
+    if logging
         open(path,"a") do io
-             println(io,"\r\n_qp completed.")
+             if(f_opt)
+                 println(io,"\r\nSolution found.\r\n")
+             else
+                 println(io,"\r\nLimit of iterations.\r\n")
+             end
+
+             norm::T = T(0.)
+             @inbounds for j = 1:m1
+                 for i = 1:m1
+                     norm += spline._gram[j, i]*mu[j]*mu[i]
+                 end
+             end
+             @inbounds for j = m1p1:m
+                 for i = m1p1:m
+                     norm += spline._gram[j, i]*(mu[j] - mu[j+m2])*(mu[i] - mu[i+m2])
+                 end
+             end
+             @inbounds for i = 1:m1
+                 for j = m1p1:m
+                     norm += T(2.0) * spline._gram[i, j]*mu[i]*(mu[j] - mu[j+m2])
+                 end
+             end
+             norm = sqrt(norm)
+             norm = round(norm; digits=0)
+             println(io,"\r\nSpline norm:", norm)
+
+             println(io,"\r\nNumber of active inequality constraints:", nak-m1)
+             println(io,"\r\nActive inequality constraints:\r\n")
+             l_ak = copy(ak)
+             for i= m1p1:nak
+                 if l_ak[i] > m
+                    l_ak[i] -= m
+                    l_ak[i] = -l_ak[i]
+                 else
+                    l_ak[i] -= m1
+                 end
+             end
+             println(io, l_ak[m1p1:end])
+             println(io,"\r\nNumber of inactive inequality constraints:", npk)
+             println(io,"\r\nInactive inequality constraints:\r\n")
+             l_pk = copy(pk)
+             for i= 1:npk
+                 if l_pk[i] > m
+                    l_pk[i] -= m
+                    l_pk[i] = -l_pk[i]
+                 else
+                    l_pk[i] -= m1
+                 end
+             end
+             println(io, l_pk)
+             println(io, "\r\n")
+
+             println(io,"\r\n_qp completed.\r\n")
         end
     end
     return spl
