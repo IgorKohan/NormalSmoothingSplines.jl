@@ -193,8 +193,8 @@
 
         spl = approximate(x_b, u_lb, u_ub, 100, RK_H2(0.1))
         res = evaluate(spl, points)
-        res_rounded = round.(res; digits=3)
-        @test res_rounded ≈ [14.747, 0.0, 1.0, 10.0, 10.0, 4.451, 0.83, 0.0, 0.143, 0.1, -0.351]
+        res_rounded = round.(res; digits=2)
+        @test res_rounded ≈ [14.75, 0.0, 1.0, 10.0, 10.0, 4.45, 0.83, 0.0, 0.14, 0.1, -0.35]
         @test issetequal(spl._active, [-3, 2, -1, 4, 8, -6, 0, 0])
         cond = estimate_cond(spl)
         @test cond ≈ 1.0e10
