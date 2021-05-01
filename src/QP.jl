@@ -60,29 +60,37 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
 # Main cycle
     mat = nothing
     nit_done = 0
+    nit_fac = 0
 #
     @inbounds for it = 1:nit
         nit_done += 1
+        nit_fac += 1
 
         @inbounds for i = 1:n
             lambda[i] = T(0.)
         end
 
-        w = zeros(T, nak)
-        @inbounds for j = 1:nak
-            jj = ak[j]
-            w[j] = b[jj]
-        end
-
         if nak > 0
 #  Calculating Gram matrix factorization and lambda
 
-            f_add = false # TODO delete
+            #f_add = false # TODO delete
             f_del = false # TODO delete
 
-            if it == nit / 2 # TODO change
+            if it == 1 || nak <= 2 # TODO change nak -> 10
                 f_add = false
                 f_del = false
+            end
+
+            if nit_fac > 100
+                f_add = false
+                f_del = false
+                nit_fac = 0
+            end
+
+            w = zeros(T, nak)
+            @inbounds for j = 1:nak
+                jj = ak[j]
+                w[j] = b[jj]
             end
 
             if !f_add && !f_del
@@ -108,13 +116,16 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                           mat[i,j] = si * sj * spline._gram[ii, jj]
                           mat[j,i] = mat[i,j]
                       end
-                end # @inbounds for j = 1:nak
+                end # for j = 1:nak
 
                 try
                     mat = cholesky!(mat)
                 catch
                     error("_qp: Gram 'mat' matrix is degenerate.")
                 end
+
+                #  Calculating lambda
+                w = mat \ w
 
             end #if !f_add && !f_del
 
@@ -123,11 +134,55 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
             end # if f_del
 
             if f_add
+                nakm1 = nak - 1
+                gram_col = zeros(T, nak-1)
+                gram_el = T(0.)
+                si = T(1.)
+                sj = T(1.)
+                ii = ak[nak]
+                if ii > m
+                    ii -= m2
+                    si = T(-1.)
+                end
+                @inbounds for j = 1:nak
+                      jj = ak[j]
+                      if jj > m
+                          jj -= m2
+                          sj = T(-1.)
+                      else
+                          sj = T(1.)
+                      end
+                      if j < nak
+                          gram_col[j] = si * sj * spline._gram[ii, jj]
+                      else
+                          gram_el = si * sj * spline._gram[ii, jj]
+                      end
+                end # for j = 1:nak
+
+                chol = Matrix{T}(undef, nak, nak)
+                @inbounds for j = 1:nakm1
+                      for i = j:nakm1
+                          chol[j,i] = mat.U[j,i]
+                          chol[i,j] = chol[j,i]
+                      end
+                end
+                gram_col = mat.L \ gram_col
+                for i = 1:nakm1
+                    chol[nak,i] = gram_col[i]
+                    chol[i,nak] = gram_col[i]
+                end
+                chol_el = gram_el - gram_col' * gram_col
+                if chol_el > T(0.)
+                    chol[nak,nak] = sqrt(chol_el)
+                else
+                    error("_qp: updated (+) Gram matrix is degenerate.")
+                end
+
+                #  Calculating lambda
+                mat = Cholesky(chol, :U, 0)
+                w = mat \ w
 
             end #if f_add
-
-            #  Calculating lambda
-            w = mat \ w
 
             @inbounds for j = 1:nak
                   jj = ak[j]
@@ -145,17 +200,17 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                  norm::T = T(0.)
                  @inbounds for j = 1:m1
                      for i = 1:m1
-                         norm += spline._gram[j, i]*mu[j]*mu[i]
+                         norm += spline._gram[j,i]*mu[j]*mu[i]
                      end
                  end
                  @inbounds for j = m1p1:m
                      for i = m1p1:m
-                         norm += spline._gram[j, i]*(mu[j] - mu[j+m2])*(mu[i] - mu[i+m2])
+                         norm += spline._gram[j,i]*(mu[j] - mu[j+m2])*(mu[i] - mu[i+m2])
                      end
                  end
                  @inbounds for i = 1:m1
                      for j = m1p1:m
-                         norm += T(2.0) * spline._gram[i, j]*mu[i]*(mu[j] - mu[j+m2])
+                         norm += T(2.) * spline._gram[i,j]*mu[i]*(mu[j] - mu[j+m2])
                      end
                  end
                  norm = sqrt(norm)
@@ -189,8 +244,8 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                  end
                  println(io, l_pk)
                  println(io, "\r\n")
-            end
-        end
+            end # io
+        end # logging
 
         if nak == m
             @inbounds for i = 1:n
@@ -208,6 +263,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                   end
                   f_opt = false
                   f_del = true
+                  f_add = false
                   i_del = ii
                   npk += 1
                   pk[npk] = ii
@@ -271,7 +327,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
         end #.. for i = 1:npk
 #.. Calculating t_min, i_min
 
-        if t_min < (T(1.0) + eps) # the projection is not feasible
+        if t_min < (T(1.) + eps) # the projection is not feasible
             @inbounds for i = 1:n
                 mu[i] += t_min * (lambda[i] - mu[i])
             end
@@ -332,7 +388,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 break #..Main cycle
             end
 
-        end #.. t_min < (T(1.0) + eps)
+        end #.. t_min < (T(1.) + eps)
 
     end #..Main cycle
 
@@ -385,17 +441,17 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
              norm::T = T(0.)
              @inbounds for j = 1:m1
                  for i = 1:m1
-                     norm += spline._gram[j, i]*mu[j]*mu[i]
+                     norm += spline._gram[j,i]*mu[j]*mu[i]
                  end
              end
              @inbounds for j = m1p1:m
                  for i = m1p1:m
-                     norm += spline._gram[j, i]*(mu[j] - mu[j+m2])*(mu[i] - mu[i+m2])
+                     norm += spline._gram[j,i]*(mu[j] - mu[j+m2])*(mu[i] - mu[i+m2])
                  end
              end
              @inbounds for i = 1:m1
                  for j = m1p1:m
-                     norm += T(2.0) * spline._gram[i, j]*mu[i]*(mu[j] - mu[j+m2])
+                     norm += T(2.) * spline._gram[i,j]*mu[i]*(mu[j] - mu[j+m2])
                  end
              end
              norm = sqrt(norm)
@@ -429,7 +485,8 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
              println(io, "\r\n")
 
              println(io,"\r\n_qp completed.\r\n")
-        end
-    end
+        end #io
+    end # logging
+
     return spl
 end

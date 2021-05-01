@@ -154,6 +154,8 @@ function _construct_approximation(spline::NormalSpline{T, RK},
         error("Spline object is not correctly prepared ('spline._nodes_b' is empty).")
     end
 
+# TODO ub > lb
+
     m1 = 0
     if !isnothing(spline._nodes)
         m1 = size(spline._nodes, 2)
