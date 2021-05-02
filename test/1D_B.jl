@@ -38,13 +38,27 @@
         @test issetequal(spl._active, [8, 1, 6, 3, 0, 0, 0, 0])
         cond = estimate_cond(spl)
         @test cond ≈ 10000.0
-##
+
         spl_inter = interpolate(x, u, RK_H0(0.1))
         res_inter = evaluate(spl_inter, points)
         res_inter_rounded = round.(res_inter; digits=3)
         @test res_inter_rounded ≈ [0.0, 1.999, 3.999, 5.998, 7.999, 10.0, 7.999, 5.998, 3.999, 1.999, 0.0]
         cond_inter = estimate_cond(spl_inter)
         @test cond_inter ≈ 100.0
+##
+        x_b = [1., 2., 3., 4., 6., 7., 8., 9.]
+        u_ub = [Inf, 1., Inf, 10., 10., 1., 1., 0.1]
+        u_lb = [0., 0., 10., 0., 0., 0., 0., -Inf]
+        points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
+
+        spl = approximate(x_b, u_lb, u_ub, 100, RK_H0(0.1))
+        res = evaluate(spl, points)
+        res_rounded = round.(res; digits=2)
+        @test res_rounded ≈ [0.98, 0.99, 1.0, 10.0, 7.75, 5.5, 3.25, 1.0, 0.55, 0.1, 0.1]
+        @test issetequal(spl._active, [-3, 2, 6, 8, 0, 0, 0, 0])
+        cond = estimate_cond(spl)
+        @test cond ≈ 1000.0
+
 ####
         # σ = evaluate(spl, x)                # evaluate spline in nodes
         # @test σ ≈ u                         # compare with exact function values in nodes
@@ -88,7 +102,7 @@
          cond_inter = estimate_cond(spl_inter)
          @test cond_inter ≈ 100000.0
 
-###
+##
          x = [0., 5., 10.]
          x_b = [1., 2., 3., 4., 6., 7., 8., 9.]
          u = [0.0, 10.0, 0.]
@@ -172,8 +186,8 @@
         @test cond ≈ 1.0e7
 ##
         x = [0., 5., 10.]
-        x_b = [1., 2., 3., 4., 6., 7., 8., 9.]
         u = [0.0, 10.0, 0.]
+        x_b = [1., 2., 3., 4., 6., 7., 8., 9.]
         u_ub = [0.1, 1., 1., 10., 10., 1., 1., 0.1]
         u_lb = [0., 0., 0., 0., 0., 0., 0., 0.]
         points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]

@@ -310,22 +310,53 @@ function _evaluate_approximation(spline::NormalSpline{T, RK}, points::Matrix{T},
 
     spline_values = Vector{T}(undef, m)
     h_values = Vector{T}(undef, n_1)
-    h_values_b = Vector{T}(undef, n_1_b)
 
-    # COH TODO - use only active constraints
-    @inbounds for p = 1:m
-        for i = 1:n_1_b
-            h_values_b[i] = _rk(spline._kernel, pts[:,p], spline._nodes_b[:,i])
-        end
-        if n_1 > 0
-            for i = 1:n_1
-                h_values[i] = _rk(spline._kernel, pts[:,p], spline._nodes[:,i])
+    if spline._iter >= 0 # iteration limit reached
+
+        h_values_b = Vector{T}(undef, n_1_b)
+        @inbounds for p = 1:m
+            for i = 1:n_1_b
+                h_values_b[i] = _rk(spline._kernel, pts[:,p], spline._nodes_b[:,i])
             end
-            spline_values[p] = sum(spline._mu .* [h_values; h_values_b; -h_values_b])
-        else
-            spline_values[p] = sum(spline._mu .* [h_values_b; -h_values_b])
+            if n_1 > 0
+                for i = 1:n_1
+                    h_values[i] = _rk(spline._kernel, pts[:,p], spline._nodes[:,i])
+                end
+                spline_values[p] = sum(spline._mu .* [h_values; h_values_b; -h_values_b])
+            else
+                spline_values[p] = sum(spline._mu .* [h_values_b; -h_values_b])
+            end
         end
-    end
+    else # solution found
+        ak = spline._active[spline._active .!= 0]
+        nak = length(ak)
+        h_values_b = Vector{T}(undef, nak)
+        mu_b = Vector{T}(undef, nak)
+        @inbounds for p = 1:m
+            spline_values[p] = T(0.)
+            if n_1 > 0
+                for i = 1:n_1
+                    h_values[i] = _rk(spline._kernel, pts[:,p], spline._nodes[:,i])
+                end
+                spline_values[p] += sum(spline._mu[1:n_1] .* h_values)
+            end
+
+            for i = 1:nak
+                ii = ak[i]
+                if ii > 0
+                    mu_b[i] = spline._mu[ii+n_1]
+                    h_values_b[i] = _rk(spline._kernel, pts[:,p], spline._nodes_b[:,ii])
+                    s = 0
+                else
+                    ii = -ii
+                    mu_b[i] = spline._mu[ii+n_1+n_1_b]
+                    h_values_b[i] = -_rk(spline._kernel, pts[:,p], spline._nodes_b[:,ii])
+                    s = 0
+                end
+            end
+            spline_values[p] += sum(mu_b .* h_values_b)
+        end
+    end # if spline._iter >= 0
 
     return spline_values
 end

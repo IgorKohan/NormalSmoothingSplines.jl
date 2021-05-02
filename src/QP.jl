@@ -54,7 +54,6 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
     f_add::Bool = false
     f_del::Bool = false
     f_opt::Bool = false
-    i_add = 0
     i_del = 0
 
 # Main cycle
@@ -66,22 +65,39 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
         nit_done += 1
         nit_fac += 1
 
+        if logging
+            open(path,"a") do io
+                println(io,"\r\nIteration:", it)
+                if it > 1 && f_add
+                    println(io,"\r\nConstraint added.")
+                end
+                if it > 1 && f_del
+                    println(io,"\r\nConstraint released.")
+                end
+                nab = length(ak[ak .> 0]) - m1
+                nlb = length(ak[ak .> m])
+                println(io,"\r\nActive constraints:", (nak-m1))
+                println(io,"\r\nActive upper constraints:", (nab-nlb))
+                println(io,"\r\nActive lower constraints:", nlb)
+                println(io,"\r\nInactive constraints:", npk)
+            end
+        end
+
         @inbounds for i = 1:n
             lambda[i] = T(0.)
         end
 
         if nak > 0
 #  Calculating Gram matrix factorization and lambda
-
-            #f_add = false # TODO delete
-            f_del = false # TODO delete
-
-            if it == 1 || nak <= 2 # TODO change nak -> 10
+            if it == 1 || nak <= 2
                 f_add = false
+            end
+            f_del = false # TODO delete
+            if it == 1 || (i_del > 0 && i_del <= 2)
                 f_del = false
             end
 
-            if nit_fac > 100
+            if nit_fac > n / 2
                 f_add = false
                 f_del = false
                 nit_fac = 0
@@ -94,6 +110,13 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
             end
 
             if !f_add && !f_del
+
+                if logging
+                    open(path,"a") do io
+                        println(io,"\r\nFactorization is calculated.")
+                    end
+                end
+
                 mat = Matrix{T}(undef, nak, nak)
                 si = T(1.)
                 sj = T(1.)
@@ -121,7 +144,12 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 try
                     mat = cholesky!(mat)
                 catch
-                    error("_qp: Gram 'mat' matrix is degenerate.")
+                    error("_qp: Gram matrix 'mat' is degenerate.")
+                    if logging
+                        open(path,"a") do io
+                             println(io,"\r\n_qp: Gram matrix 'mat' is degenerate.\r\n")
+                        end # io
+                    end # logging
                 end
 
                 #  Calculating lambda
@@ -130,10 +158,74 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
             end #if !f_add && !f_del
 
             if f_del
+                if logging
+                    open(path,"a") do io
+                        println(io,"\r\nFactorization is recalculated (-).")
+                    end
+                end
+
+                chol = Matrix{T}(undef, nak, nak)
+                nakp1 = nak + 1
+                if i_del == nakp1
+                    @inbounds for j = 1:nak
+                          for i = j:nak
+                              chol[j,i] = mat.U[j,i]
+                              chol[i,j] = chol[j,i]
+                          end
+                    end
+                    mat = Cholesky(chol, :U, 0)
+                else
+
+                 # TODO working with m.L
+
+                 # for(t=0; t<=mkp-1-i_del; t++) {
+                 #         iw = i_del + t;
+                 #         ii = iw + 1;
+                 #         jj = iw;
+                 #         ij1 = (long)(mkp2-jj)*(jj-1)/2 + ii;  /* ii >= jj */
+                 #         g1 = grk[ij1-1];
+                 #
+                 #         jj++;
+                 #         ij2 = (long)(mkp2-jj)*(jj-1)/2 + ii;  /* ii >= jj */
+                 #         g2 = grk[ij2-1];
+                 #
+                 #         rg = rsqr(g1,g2);
+                 #         if( rg == 0. ) {
+                 #           ier = -1;
+                 #           goto LK_EX;
+                 #         };
+                 #         c = g1/rg;
+                 #         s = g2/rg;
+                 #
+                 #         for(k=1; k<=mkp-i_del-t; k++) {
+                 #           ii = iw + k;
+                 #           jj = iw;
+                 #           ij1 = (long)(mkp2-jj)*(jj-1)/2 + ii;   /* ii >= jj */
+                 #           g1 = grk[ij1-1];
+                 #
+                 #           jj++;
+                 #           ij2 = (long)(mkp2-jj)*(jj-1)/2 + ii;   /* ii >= jj */
+                 #           g2 = grk[ij2-1];
+                 #
+                 #           grk[ij1-1] =  c*g1 + s*g2;
+                 #           grk[ij2-1] = -s*g1 + c*g2;
+                 #         };
+
+
+                end
+
+                #  Calculating lambda
+                w = mat \ w
 
             end # if f_del
 
             if f_add
+                if logging
+                    open(path,"a") do io
+                        println(io,"\r\nFactorization is recalculated. (+)")
+                    end
+                end
+
                 nakm1 = nak - 1
                 gram_col = zeros(T, nak-1)
                 gram_el = T(0.)
@@ -175,7 +267,16 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 if chol_el > T(0.)
                     chol[nak,nak] = sqrt(chol_el)
                 else
-                    error("_qp: updated (+) Gram matrix is degenerate.")
+                    #error("_qp: updated (+) Gram matrix is degenerate.")
+                    println("_qp: updated (+) Gram matrix is degenerate.")
+                    if logging
+                        open(path,"a") do io
+                             println(io,"\r\n_qp: updated (+) Gram matrix is degenerate.\r\n")
+                        end # io
+                    end # logging
+
+                    f_add = false
+                    break # Main cycle
                 end
 
                 #  Calculating lambda
@@ -195,8 +296,6 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
 
         if logging
             open(path,"a") do io
-                 println(io,"\r\nIteration:", it)
-
                  norm::T = T(0.)
                  @inbounds for j = 1:m1
                      for i = 1:m1
@@ -217,32 +316,32 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                  norm = round(norm; digits=0)
                  println(io,"\r\nSpline norm:", norm)
 
-                 println(io,"\r\nNumber of active inequality constraints:", nak-m1)
-                 println(io,"\r\nActive inequality constraints:\r\n")
-                 l_ak = copy(ak)
-                 for i= m1p1:nak
-                     if l_ak[i] > m
-                        l_ak[i] -= m
-                        l_ak[i] = -l_ak[i]
-                     else
-                        l_ak[i] -= m1
-                     end
-                 end
-                 if nak > m1
-                     println(io, l_ak[m1p1:end])
-                 end
-                 println(io,"\r\nNumber of inactive inequality constraints:", npk)
-                 println(io,"\r\nInactive inequality constraints:\r\n")
-                 l_pk = copy(pk)
-                 for i= 1:npk
-                     if l_pk[i] > m
-                        l_pk[i] -= m
-                        l_pk[i] = -l_pk[i]
-                     else
-                        l_pk[i] -= m1
-                     end
-                 end
-                 println(io, l_pk)
+                 # println(io,"\r\nNumber of active inequality constraints:", nak-m1)
+                 # println(io,"\r\nActive inequality constraints:\r\n")
+                 # l_ak = copy(ak)
+                 # for i= m1p1:nak
+                 #     if l_ak[i] > m
+                 #        l_ak[i] -= m
+                 #        l_ak[i] = -l_ak[i]
+                 #     else
+                 #        l_ak[i] -= m1
+                 #     end
+                 # end
+                 # if nak > m1
+                 #     println(io, l_ak[m1p1:end])
+                 # end
+                 # println(io,"\r\nNumber of inactive inequality constraints:", npk)
+                 # println(io,"\r\nInactive inequality constraints:\r\n")
+                 # l_pk = copy(pk)
+                 # for i= 1:npk
+                 #     if l_pk[i] > m
+                 #        l_pk[i] -= m
+                 #        l_pk[i] = -l_pk[i]
+                 #     else
+                 #        l_pk[i] -= m1
+                 #     end
+                 # end
+                 # println(io, l_pk)
                  println(io, "\r\n")
             end # io
         end # logging
@@ -264,7 +363,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                   f_opt = false
                   f_del = true
                   f_add = false
-                  i_del = ii
+                  i_del = i
                   npk += 1
                   pk[npk] = ii
                   ip1 = i + 1
@@ -326,14 +425,16 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
             end
         end #.. for i = 1:npk
 #.. Calculating t_min, i_min
-
-        if t_min < (T(1.) + eps) # the projection is not feasible
+        if t_min < T(eps)
+            t_min = T(0.)
+        end
+        if t_min >= T(0.) && t_min < (T(1.) + eps) # the projection is not feasible
             @inbounds for i = 1:n
                 mu[i] += t_min * (lambda[i] - mu[i])
             end
             f_add = true
             f_del = false
-            i_add = i_min
+            i_del = 0
             nak += 1
             ak[nak] = i_min
             k = 0
@@ -372,7 +473,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                   f_opt = false
                   f_del = true
                   f_add = false
-                  i_del = ii
+                  i_del = i
                   npk += 1
                   pk[npk] = ii
                   ip1 = i + 1
@@ -456,33 +557,39 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
              end
              norm = sqrt(norm)
              norm = round(norm; digits=0)
+             nab = length(ak[ak .> 0]) - m1
+             nlb = length(ak[ak .> m])
+             println(io,"\r\nActive constraints:", (nak-m1))
+             println(io,"\r\nActive upper constraints:", (nab-nlb))
+             println(io,"\r\nActive lower constraints:", nlb)
+             println(io,"\r\nInactive constraints:", npk)
              println(io,"\r\nSpline norm:", norm)
 
-             println(io,"\r\nNumber of active inequality constraints:", nak-m1)
-             println(io,"\r\nActive inequality constraints:\r\n")
-             l_ak = copy(ak)
-             for i= m1p1:nak
-                 if l_ak[i] > m
-                    l_ak[i] -= m
-                    l_ak[i] = -l_ak[i]
-                 else
-                    l_ak[i] -= m1
-                 end
-             end
-             println(io, l_ak[m1p1:end])
-             println(io,"\r\nNumber of inactive inequality constraints:", npk)
-             println(io,"\r\nInactive inequality constraints:\r\n")
-             l_pk = copy(pk)
-             for i= 1:npk
-                 if l_pk[i] > m
-                    l_pk[i] -= m
-                    l_pk[i] = -l_pk[i]
-                 else
-                    l_pk[i] -= m1
-                 end
-             end
-             println(io, l_pk)
-             println(io, "\r\n")
+             # println(io,"\r\nNumber of active inequality constraints:", nak-m1)
+             # println(io,"\r\nActive inequality constraints:\r\n")
+             # l_ak = copy(ak)
+             # for i= m1p1:nak
+             #     if l_ak[i] > m
+             #        l_ak[i] -= m
+             #        l_ak[i] = -l_ak[i]
+             #     else
+             #        l_ak[i] -= m1
+             #     end
+             # end
+             # println(io, l_ak[m1p1:end])
+             # println(io,"\r\nNumber of inactive inequality constraints:", npk)
+             # println(io,"\r\nInactive inequality constraints:\r\n")
+             # l_pk = copy(pk)
+             # for i= 1:npk
+             #     if l_pk[i] > m
+             #        l_pk[i] -= m
+             #        l_pk[i] = -l_pk[i]
+             #     else
+             #        l_pk[i] -= m1
+             #     end
+             # end
+             # println(io, l_pk)
+             # println(io, "\r\n")
 
              println(io,"\r\n_qp completed.\r\n")
         end #io
