@@ -111,12 +111,6 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
 
             if !f_add && !f_del
 
-                if logging
-                    open(path,"a") do io
-                        println(io,"\r\nFactorization is calculated.")
-                    end
-                end
-
                 mat = Matrix{T}(undef, nak, nak)
                 si = T(1.)
                 sj = T(1.)
@@ -144,25 +138,25 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 try
                     mat = cholesky!(mat)
                 catch
-                    error("_qp: Gram matrix 'mat' is degenerate.")
                     if logging
                         open(path,"a") do io
                              println(io,"\r\n_qp: Gram matrix 'mat' is degenerate.\r\n")
                         end # io
                     end # logging
+                    error("_qp: Gram matrix 'mat' is degenerate.")
                 end
 
                 #  Calculating lambda
                 w = mat \ w
 
+                if logging
+                    open(path,"a") do io
+                        println(io,"\r\nFactorization (full) is calculated.")
+                    end
+                end
             end #if !f_add && !f_del
 
             if f_del
-                if logging
-                    open(path,"a") do io
-                        println(io,"\r\nFactorization is recalculated (-).")
-                    end
-                end
 
                 chol = Matrix{T}(undef, nak, nak)
                 nakp1 = nak + 1
@@ -175,41 +169,37 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                     end
                     mat = Cholesky(chol, :U, 0)
                 else
+                    rec_err::Bool = false
+                    for t = i_del:nak
+                        tp1 = t + 1
+                        g1::T = mat.L[tp1, t]
+                        g2::T = mat.L[tp1, tp1]
+                        hp::T = hypot(g1, g2)
+                        if hp < eps(T)
+                            if logging
+                                open(path,"a") do io
+                                     println(io,"\r\n_qp: updated (-) Gram matrix is degenerate.\r\n")
+                                     println(io,"\r\n_qp: Going to full Gram matrix factorization.\r\n")
+                                end # io
+                            end # logging
 
-                 # TODO working with m.L
+                            rec_err = true
+                            break #for t = i_del:nak
+                        end
+                        c::T = g1/rg;
+                        s::T = g2/rg;
 
-                 # for(t=0; t<=mkp-1-i_del; t++) {
-                 #         iw = i_del + t;
-                 #         ii = iw + 1;
-                 #         jj = iw;
-                 #         ij1 = (long)(mkp2-jj)*(jj-1)/2 + ii;  /* ii >= jj */
-                 #         g1 = grk[ij1-1];
-                 #
-                 #         jj++;
-                 #         ij2 = (long)(mkp2-jj)*(jj-1)/2 + ii;  /* ii >= jj */
-                 #         g2 = grk[ij2-1];
-                 #
-                 #         rg = rsqr(g1,g2);
-                 #         if( rg == 0. ) {
-                 #           ier = -1;
-                 #           goto LK_EX;
-                 #         };
-                 #         c = g1/rg;
-                 #         s = g2/rg;
-                 #
-                 #         for(k=1; k<=mkp-i_del-t; k++) {
-                 #           ii = iw + k;
-                 #           jj = iw;
-                 #           ij1 = (long)(mkp2-jj)*(jj-1)/2 + ii;   /* ii >= jj */
-                 #           g1 = grk[ij1-1];
-                 #
-                 #           jj++;
-                 #           ij2 = (long)(mkp2-jj)*(jj-1)/2 + ii;   /* ii >= jj */
-                 #           g2 = grk[ij2-1];
-                 #
-                 #           grk[ij1-1] =  c*g1 + s*g2;
-                 #           grk[ij2-1] = -s*g1 + c*g2;
-                 #         };
+                        i_delp1 = i_del + 1
+                        for k = i_delp1:nak
+                            kp1 = k + t
+
+                        end
+
+                    end #for t = i_del:nak
+                    if rec_err
+                        break # Main cycle
+                    end
+
 
 
                 end
@@ -217,15 +207,14 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 #  Calculating lambda
                 w = mat \ w
 
+                if logging
+                    open(path,"a") do io
+                        println(io,"\r\nFactorization is recalculated (-).")
+                    end
+                end
             end # if f_del
 
             if f_add
-                if logging
-                    open(path,"a") do io
-                        println(io,"\r\nFactorization is recalculated. (+)")
-                    end
-                end
-
                 nakm1 = nak - 1
                 gram_col = zeros(T, nak-1)
                 gram_el = T(0.)
@@ -267,14 +256,14 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 if chol_el > T(0.)
                     chol[nak,nak] = sqrt(chol_el)
                 else
-                    #error("_qp: updated (+) Gram matrix is degenerate.")
-                    println("_qp: updated (+) Gram matrix is degenerate.")
                     if logging
                         open(path,"a") do io
                              println(io,"\r\n_qp: updated (+) Gram matrix is degenerate.\r\n")
+                             println(io,"\r\n_qp: Going to full Gram matrix factorization.\r\n")
                         end # io
                     end # logging
 
+                    # Going to full Gram matrix factorization.
                     f_add = false
                     break # Main cycle
                 end
@@ -283,6 +272,11 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 mat = Cholesky(chol, :U, 0)
                 w = mat \ w
 
+                if logging
+                    open(path,"a") do io
+                        println(io,"\r\nFactorization is recalculated. (+)")
+                    end
+                end
             end #if f_add
 
             @inbounds for j = 1:nak
@@ -296,7 +290,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
 
         if logging
             open(path,"a") do io
-                 norm::T = T(0.)
+                 norm = T(0.)
                  @inbounds for j = 1:m1
                      for i = 1:m1
                          norm += spline._gram[j,i]*mu[j]*mu[i]
@@ -392,8 +386,8 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
         t_min::T = t_max
         i_min = 0
         @inbounds for i = 1:npk
-            eik::T = T(0.)
-            s::T = T(0.)
+            eik = T(0.)
+            s = T(0.)
             ii = pk[i]
             if ii > m
                 ii -= m2
@@ -416,7 +410,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
             if eik > T(eps)
                 ii = pk[i]
                 if abs(b[ii]) != Inf
-                    tik = (b[ii] - s) / eik
+                    tik = (b[ii] - s) / eik  # tik >≈ 0 here
                     if tik < t_min
                         i_min = ii
                         t_min = tik
@@ -425,7 +419,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
             end
         end #.. for i = 1:npk
 #.. Calculating t_min, i_min
-        if t_min < T(eps)
+        if t_min < T(eps)  # fixing the round-off error
             t_min = T(0.)
         end
         if t_min >= T(0.) && t_min < (T(1.) + eps) # the projection is not feasible
@@ -539,7 +533,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                  println(io,"\r\nLimit of iterations.\r\n")
              end
 
-             norm::T = T(0.)
+             norm = T(0.)
              @inbounds for j = 1:m1
                  for i = 1:m1
                      norm += spline._gram[j,i]*mu[j]*mu[i]
