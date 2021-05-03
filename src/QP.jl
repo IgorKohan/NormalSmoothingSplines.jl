@@ -1,4 +1,6 @@
-function _qp(spline::NormalSpline{T, RK}, nit::Int, tol::T,
+function _qp(spline::NormalSpline{T, RK},
+             active::Vector{Int},
+             nit::Int, tol::T,
              cleanup::Bool = false
             ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
 
@@ -94,7 +96,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, tol::T,
             if it == 1 || nak <= 10
                 f_add = false
             end
-            if it == 1 || (i_del > m1 && i_del <= (m1+10))
+            if it == 1 || (i_del != (nak + 1) && i_del <= (m1 + 10))
                 f_del = false
             end
 

@@ -242,7 +242,7 @@ function _construct_approximation(spline::NormalSpline{T, RK},
                          )
 
     eps = T(1.e-10)
-    spline = _qp(spline, nit, eps, cleanup)
+    spline = _qp(spline, Int[], nit, eps, cleanup)
     return spline
 end
 
