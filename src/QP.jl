@@ -1,4 +1,4 @@
-function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
+function _qp(spline::NormalSpline{T, RK}, nit::Int, tol::T,
              cleanup::Bool = false
             ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
 
@@ -89,11 +89,10 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
 
         if nak > 0
 #  Calculating Gram matrix factorization and lambda
-            if it == 1 || nak <= 2
+            if it == 1 || nak <= 2 # TODO change it
                 f_add = false
             end
-            f_del = false # TODO delete
-            if it == 1 || (i_del > 0 && i_del <= 2)
+            if it == 1 || (i_del > 0 && i_del <= 1) # TODO change it
                 f_del = false
             end
 
@@ -157,9 +156,9 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
             end #if !f_add && !f_del
 
             if f_del
-
                 chol = Matrix{T}(undef, nak, nak)
                 nakp1 = nak + 1
+
                 if i_del == nakp1
                     @inbounds for j = 1:nak
                           for i = j:nak
@@ -168,41 +167,56 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                           end
                     end
                     mat = Cholesky(chol, :U, 0)
-                else
+                else # if i_del == (nak + 1)
                     rec_err::Bool = false
-                    for t = i_del:nak
-                        tp1 = t + 1
-                        g1::T = mat.L[tp1, t]
-                        g2::T = mat.L[tp1, tp1]
+                    te = nakp1 - i_del
+                    for t = 1:te
+                        l = i_del + t
+                        g1::T = mat.L[l, l-1]
+                        g2::T = mat.L[l, l]
                         hp::T = hypot(g1, g2)
                         if hp < eps(T)
                             if logging
                                 open(path,"a") do io
                                      println(io,"\r\n_qp: updated (-) Gram matrix is degenerate.\r\n")
-                                     println(io,"\r\n_qp: Going to full Gram matrix factorization.\r\n")
+                                     println(io,"_qp: Going to full Gram matrix factorization.\r\n")
                                 end # io
                             end # logging
 
                             rec_err = true
                             break #for t = i_del:nak
                         end
-                        c::T = g1/rg;
-                        s::T = g2/rg;
+                        c::T = g1 / hp;
+                        s::T = g2 / hp;
 
-                        i_delp1 = i_del + 1
-                        for k = i_delp1:nak
-                            kp1 = k + t
-
+                        for k = l:nakp1
+                            g1 = mat.L[k, l-1]
+                            g2 = mat.L[k, l]
+                            a1 =  c * g1 + s * g2
+                            a2 = -s * g1 + c * g2
+                            mat.factors[k, l-1] = c * g1 + s * g2
+                            mat.factors[k, l] = -s * g1 + c * g2
+                            mat.factors[l-1, k] = mat.factors[k, l-1]
+                            mat.factors[l, k] = mat.factors[k, l]
                         end
-
-                    end #for t = i_del:nak
+                    end # for t = 1:te
                     if rec_err
                         break # Main cycle
                     end
+                end # if i_del == nakp1
 
-
-
+                k = 0
+                @inbounds for i = 1:nak
+                    k += 1
+                    if i == i_del
+                         k += 1
+                    end
+                    for j = 1:i
+                        chol[i,j] = mat.L[k,j]
+                    end
                 end
+
+                mat = Cholesky(chol, :L, 0)
 
                 #  Calculating lambda
                 w = mat \ w
@@ -259,7 +273,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                     if logging
                         open(path,"a") do io
                              println(io,"\r\n_qp: updated (+) Gram matrix is degenerate.\r\n")
-                             println(io,"\r\n_qp: Going to full Gram matrix factorization.\r\n")
+                             println(io,"_qp: Going to full Gram matrix factorization.\r\n")
                         end # io
                     end # logging
 
@@ -351,7 +365,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                   if ii <= m1
                       continue #.. for i = 1:nak
                   end
-                  if lambda[ii] < T(eps)
+                  if lambda[ii] < T(tol)
                       continue #.. for i = 1:nak
                   end
                   f_opt = false
@@ -407,7 +421,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 s += mu[j] * si * sj * spline._gram[ii, jj]
             end #.. for j = 1:n
 
-            if eik > T(eps)
+            if eik > T(tol)
                 ii = pk[i]
                 if abs(b[ii]) != Inf
                     tik = (b[ii] - s) / eik  # tik >≈ 0 here
@@ -419,10 +433,10 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
             end
         end #.. for i = 1:npk
 #.. Calculating t_min, i_min
-        if t_min < T(eps)  # fixing the round-off error
+        if t_min < T(tol)  # fixing the round-off error
             t_min = T(0.)
         end
-        if t_min >= T(0.) && t_min < (T(1.) + eps) # the projection is not feasible
+        if t_min >= T(0.) && t_min < (T(1.) + tol) # the projection is not feasible
             @inbounds for i = 1:n
                 mu[i] += t_min * (lambda[i] - mu[i])
             end
@@ -461,7 +475,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                   if ii <= m1
                       continue #.. for i = 1:nak
                   end
-                  if lambda[ii] < T(eps)
+                  if lambda[ii] < T(tol)
                       continue #.. for i = 1:nak
                   end
                   f_opt = false
@@ -483,7 +497,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, eps::T,
                 break #..Main cycle
             end
 
-        end #.. t_min < (T(1.) + eps)
+        end #.. t_min < (T(1.) + tol)
 
     end #..Main cycle
 
