@@ -69,10 +69,12 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, tol::T,
             open(path,"a") do io
                 println(io,"\r\nIteration:", it)
                 if it > 1 && f_add
-                    println(io,"\r\nConstraint added.")
+                    i_add = ak[nak]
+                    println(io,"\r\nConstraint added ($i_add).")
                 end
                 if it > 1 && f_del
-                    println(io,"\r\nConstraint released.")
+                    pk_del = pk[npk]
+                    println(io,"\r\nConstraint released ($i_del $pk_del).")
                 end
                 nab = length(ak[ak .> 0]) - m1
                 nlb = length(ak[ak .> m])
@@ -89,14 +91,14 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, tol::T,
 
         if nak > 0
 #  Calculating Gram matrix factorization and lambda
-            if it == 1 || nak <= 2 # TODO change it
+            if it == 1 || nak <= 10
                 f_add = false
             end
-            if it == 1 || (i_del > 0 && i_del <= 1) # TODO change it
+            if it == 1 || (i_del > m1 && i_del <= (m1+10))
                 f_del = false
             end
 
-            if nit_fac > n / 2
+            if nit_fac > n / 2 || nit_fac > nit / 2
                 f_add = false
                 f_del = false
                 nit_fac = 0
@@ -163,7 +165,6 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, tol::T,
                     @inbounds for j = 1:nak
                           for i = j:nak
                               chol[j,i] = mat.U[j,i]
-                              chol[i,j] = chol[j,i]
                           end
                     end
                     mat = Cholesky(chol, :U, 0)
@@ -258,12 +259,10 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, tol::T,
                 @inbounds for j = 1:nakm1
                       for i = j:nakm1
                           chol[j,i] = mat.U[j,i]
-                          chol[i,j] = chol[j,i]
                       end
                 end
                 gram_col = mat.L \ gram_col
                 for i = 1:nakm1
-                    chol[nak,i] = gram_col[i]
                     chol[i,nak] = gram_col[i]
                 end
                 chol_el = gram_el - gram_col' * gram_col
