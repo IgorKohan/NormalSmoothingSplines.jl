@@ -167,7 +167,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, tol::T,
                           end
                     end
                     mat = Cholesky(chol, :U, 0)
-                else # if i_del == (nak + 1)
+                else
                     rec_err::Bool = false
                     te = nakp1 - i_del
                     for t = 1:te
@@ -203,20 +203,20 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, tol::T,
                     if rec_err
                         break # Main cycle
                     end
+
+                    k = 0
+                    @inbounds for i = 1:nak
+                        k += 1
+                        if i == i_del
+                             k += 1
+                        end
+                        for j = 1:i
+                            chol[i,j] = mat.L[k,j]
+                        end
+                    end
+
+                    mat = Cholesky(chol, :L, 0)
                 end # if i_del == nakp1
-
-                k = 0
-                @inbounds for i = 1:nak
-                    k += 1
-                    if i == i_del
-                         k += 1
-                    end
-                    for j = 1:i
-                        chol[i,j] = mat.L[k,j]
-                    end
-                end
-
-                mat = Cholesky(chol, :L, 0)
 
                 #  Calculating lambda
                 w = mat \ w
