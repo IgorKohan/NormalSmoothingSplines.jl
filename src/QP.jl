@@ -184,7 +184,7 @@ function _qp(spline::NormalSpline{T, RK}, nit::Int, tol::T,
                             end # logging
 
                             rec_err = true
-                            break #for t = i_del:nak
+                            break # for t = 1:te
                         end
                         c::T = g1 / hp;
                         s::T = g2 / hp;
