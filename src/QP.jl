@@ -360,14 +360,25 @@ function _qp(spline::NormalSpline{T, RK},
                 mu[i] = lambda[i]
             end
 
+            i_del = 0
+            @inbounds for i = m1p1:nak
+                ii = ak[i]
+                if lambda[ii] < T(tol)
+                    continue #.. for i = 1:nak
+                end
+                if i > i_del
+                    i_del = i
+                end
+            end
+
             f_opt = true
-            @inbounds for i = 1:nak
+            @inbounds for i = m1p1:nak
                   ii = ak[i]
-                  if ii <= m1
-                      continue #.. for i = 1:nak
-                  end
                   if lambda[ii] < T(tol)
                       continue #.. for i = 1:nak
+                  end
+                  if i != i_del
+                      continue
                   end
                   f_opt = false
                   f_del = true
@@ -470,14 +481,25 @@ function _qp(spline::NormalSpline{T, RK},
                 break             #..Main cycle
             end
 
+            i_del = 0
+            @inbounds for i = m1p1:nak
+                ii = ak[i]
+                if lambda[ii] < T(tol)
+                    continue #.. for i = 1:nak
+                end
+                if i > i_del
+                    i_del = i
+                end
+            end
+
             f_opt = true
-            @inbounds for i = 1:nak
+            @inbounds for i = m1p1:nak
                   ii = ak[i]
-                  if ii <= m1
-                      continue #.. for i = 1:nak
-                  end
                   if lambda[ii] < T(tol)
                       continue #.. for i = 1:nak
+                  end
+                  if i != i_del
+                      continue
                   end
                   f_opt = false
                   f_del = true
@@ -506,9 +528,6 @@ function _qp(spline::NormalSpline{T, RK},
     k = 0
     @inbounds for i = m1p1:nak
         ii = ak[i]
-        if ii <= m1
-            continue
-        end
         k += 1
         active[k] = ii - m1
         if active[k] > m2
