@@ -20,7 +20,7 @@ abstract type ReproducingKernel_2 <: ReproducingKernel_1 end
 
 abstract type AbstractSpline end
 
-@doc raw"
+"""
 `struct NormalSpline{T, RK} <: AbstractSpline where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 Define a structure containing full information of a normal spline
@@ -45,8 +45,13 @@ Define a structure containing full information of a normal spline
 - `_mu`: spline coefficients
 - `_active`: active inequality constraint numbers at solution
 - `_cond`: estimation of the Gram matrix condition number
-- `_iter`: number of the qp algorithm iterations done
-"
+- `_ier`: An integer flag. If it is equal to 0, the optimal solution was found.
+          If it is equal to 1, the approximate solution was found. QP algorithm iterations were stopped
+          because of small spline norm change.
+          If it is equal to 2, the approximate solution was found. QP algorithm iterations were stopped
+          because of maximum allowed number of iterations was reached.
+          If it is equal to -1, the solution was not calculated.
+"""
 struct NormalSpline{T, RK} <: AbstractSpline where {T <: AbstractFloat, RK <: ReproducingKernel_0}
     _kernel::RK
     _compression::T
@@ -68,7 +73,7 @@ struct NormalSpline{T, RK} <: AbstractSpline where {T <: AbstractFloat, RK <: Re
     _mu::Union{Vector{T}, Nothing}
     _active::Union{Vector{Int}, Nothing}
     _cond::T
-    _iter::Int
+    _ier::Int
 end
 
 include("./NormalInterpolatingSplines.jl")
@@ -82,7 +87,6 @@ include("./Approximate.jl")
 ##
 #include("./examples/Main.jl")
 ##
-
 
 """
 `prepare_approximation(nodes_b::Matrix{T}, kernel::RK = RK_H0())
@@ -140,7 +144,8 @@ end
 
 """
 `construct_approximation(spline::NormalSpline{T, RK},
-                         values_lb::Vector{T}, values_ub::Vector{T}, nit::Int)
+                         values_lb::Vector{T}, values_ub::Vector{T},
+                         maxiter::Int, ftol::T)
                          where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 construct the approximating normal spline by calculating its coefficients and
@@ -149,22 +154,25 @@ completely initializing the `NormalSpline` object.
 - `spline`: the partly initialized `NormalSpline` object returned by `prepare` function.
 - `values_lb`: function lower bound values at approximation nodes
 - `values_ub`: function upper bound values at approximation nodes
-- `nit`: maximum number of algorithm iterations
+- `maxiter`: Maximum allowed number of iterations.
+- `ftol`: convergence tolerance. The iteration stops when relative spline norm
+          change is smaller than ftol.
 
-Return: constructed `NormalSpline` object.
+Return: constructed `NormalSpline` object and the number of QP algorithm iterations done.
 """
 function construct_approximation(spline::NormalSpline{T, RK},
                                  values_lb::Vector{T},
                                  values_ub::Vector{T},
-                                 nit::Int = 100
+                                 maxiter::Int,
+                                 ftol::T = T(1.e-2)
                                 ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
-    spline = _construct_approximation(spline, values_lb, values_ub, nit)
-    return spline
+    spline, nit_done = _construct_approximation(spline, values_lb, values_ub, maxiter, ftol)
+    return spline, nit_done
 end
 
 """
-`construct_approximation(spline::NormalSpline{T, RK},
-                         values::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T}, nit::Int)
+`construct_approximation(spline::NormalSpline{T, RK}, values::Vector{T},
+                         values_lb::Vector{T}, values_ub::Vector{T}, maxiter::Int, ftol::T)
                          where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 construct the approximating normal spline by calculating its coefficients and
@@ -174,23 +182,26 @@ completely initializing the `NormalSpline` object.
 - `values`: function values at interpolation nodes.
 - `values_lb`: function lower bound values at approximation nodes
 - `values_ub`: function upper bound values at approximation nodes
-- `nit`: maximum number of algorithm iterations
+- `maxiter`: Maximum allowed number of iterations.
+- `ftol`: convergence tolerance. The iteration stops when relative spline norm
+          change is smaller than ftol.
 
-Return: constructed `NormalSpline` object.
+Return: constructed `NormalSpline` object and the number of QP algorithm iterations done.
 """
 function construct_approximation(spline::NormalSpline{T, RK},
                                  values::Vector{T},
                                  values_lb::Vector{T},
                                  values_ub::Vector{T},
-                                 nit::Int = 100
+                                 maxiter::Int,
+                                 ftol::T = T(1.e-2)
                                 ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
-    spline = _construct_approximation(spline, values, values_lb, values_ub, nit)
-    return spline
+    spline, nit_done = _construct_approximation(spline, values, values_lb, values_ub, maxiter, ftol)
+    return spline, nit_done
 end
 
 """
 `approximate(nodes::Matrix{T}, values::Vector{T}, nodes_b::Matrix{T}, values_lb::Vector{T}, values_ub::Vector{T},
-             nit::Int, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+             kernel::RK, maxiter::Int, ftol::T) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 Prepare and construct the approximating normal spline.
 # Arguments
@@ -199,29 +210,32 @@ Prepare and construct the approximating normal spline.
         `n_1_b` is the number of function value approximation nodes. It means that each column in the matrix defines one node.
 - `values_lb`: function lower bound values at approximation nodes
 - `values_ub`: function upper bound values at approximation nodes
-- `nit`: maximum number of algorithm iterations
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
               `RK_H0` if the spline is constructing as a continuous function,
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
+- `maxiter`: Maximum allowed number of iterations.
+- `ftol`: convergence tolerance. The iteration stops when relative spline norm
+          change is smaller than ftol.
 
 Return: constructed `NormalSpline` object.
 """
 function approximate(nodes_b::Matrix{T},
                      values_lb::Vector{T},
                      values_ub::Vector{T},
-                     nit::Int = 100,
-                     kernel::RK = RK_H0()
+                     kernel::RK,
+                     maxiter::Int,
+                     ftol::T = T(1.e-2)
                     ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
      spline = _prepare_approximation(nodes_b, kernel)
-     spline = _construct_approximation(spline, values_lb, values_ub, nit)
+     spline, nit_done = _construct_approximation(spline, values_lb, values_ub, maxiter, ftol)
      return spline
 end
 
 """
 `approximate(nodes::Matrix{T}, values::Vector{T}, nodes_b::Matrix{T}, values_lb::Vector{T}, values_ub::Vector{T},
-             nit::Int, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+             kernel::RK, maxiter::Int, ftol::T) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 Prepare and construct the approximating normal spline.
 # Arguments
@@ -235,12 +249,14 @@ Prepare and construct the approximating normal spline.
 - `values`: function values at interpolation nodes.
 - `values_lb`: function lower bound values at approximation nodes
 - `values_ub`: function upper bound values at approximation nodes
-- `nit`: maximum number of algorithm iterations
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
               `RK_H0` if the spline is constructing as a continuous function,
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
+- `maxiter`: Maximum allowed number of iterations.
+- `ftol`: convergence tolerance. The iteration stops when relative spline norm
+          change is smaller than ftol.
 
 Return: constructed `NormalSpline` object.
 """
@@ -249,11 +265,12 @@ function approximate(nodes::Matrix{T},
                      nodes_b::Matrix{T},
                      values_lb::Vector{T},
                      values_ub::Vector{T},
-                     nit::Int = 100,
-                     kernel::RK = RK_H0()
+                     kernel::RK,
+                     maxiter::Int,
+                     ftol::T = T(1.e-2)
                     ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
      spline = _prepare_approximation(nodes, nodes_b, kernel)
-     spline = _construct_approximation(spline, values, values_lb, values_ub, nit)
+     spline, nit_done = _construct_approximation(spline, values, values_lb, values_ub, maxiter, ftol)
      return spline
 end
 
@@ -463,10 +480,9 @@ function prepare_approximation(nodes::Vector{T},
      return spline
 end
 
-
 """
 `approximate(values::Vector{T}, nodes_b::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T},
-             nit::Int, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+             kernel::RK, maxiter::Int, ftol::T) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 Prepare and construct the 1D approximating normal spline.
 # Arguments
@@ -474,29 +490,32 @@ Prepare and construct the 1D approximating normal spline.
           This should be an `n_1_b` vector where `n_1_b` is the number of function value approximation nodes.
 - `values_lb`: function lower bound values at approximation nodes
 - `values_ub`: function upper bound values at approximation nodes
-- `nit`: maximum number of algorithm iterations
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
               `RK_H0` if the spline is constructing as a continuous function,
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
+- `maxiter`: Maximum allowed number of iterations.
+- `ftol`: convergence tolerance. The iteration stops when relative spline norm
+          change is smaller than ftol.
 
 Return: constructed `NormalSpline` object.
 """
 function approximate(nodes_b::Vector{T},
                      values_lb::Vector{T},
                      values_ub::Vector{T},
-                     nit::Int = 100,
-                     kernel::RK = RK_H0()
+                     kernel::RK,
+                     maxiter::Int,
+                     ftol::T = T(1.e-2)
                ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
      spline = _prepare_approximation(Matrix(nodes_b'), kernel)
-     spline = _construct_approximation(spline, values_lb, values_ub, nit)
+     spline, nit_done = _construct_approximation(spline, values_lb, values_ub, maxiter, ftol)
      return spline
 end
 
 """
 `approximate(nodes::Vector{T}, values::Vector{T}, nodes_b::Vector{T}, values_lb::Vector{T}, values_ub::Vector{T},
-             nit::Int, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
+             kernel::RK, maxiter::Int, ftol::T) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
 Prepare and construct the 1D approximating normal spline.
 # Arguments
@@ -507,12 +526,14 @@ Prepare and construct the 1D approximating normal spline.
           This should be an `n_1_b` vector where `n_1_b` is the number of function value approximation nodes.
 - `values_lb`: function lower bound values at approximation nodes
 - `values_ub`: function upper bound values at approximation nodes
-- `nit`: maximum number of algorithm iterations
 - `kernel`: reproducing kernel of Bessel potential space the normal spline is constructed in.
             It must be a struct object of the following type:
               `RK_H0` if the spline is constructing as a continuous function,
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
+- `maxiter`: Maximum allowed number of iterations.
+- `ftol`: convergence tolerance. The iteration stops when relative spline norm
+          change is smaller than ftol.
 
 Return: constructed `NormalSpline` object.
 """
@@ -521,11 +542,12 @@ function approximate(nodes::Vector{T},
                      nodes_b::Vector{T},
                      values_lb::Vector{T},
                      values_ub::Vector{T},
-                     nit::Int = 100,
-                     kernel::RK = RK_H0()
+                     kernel::RK,
+                     maxiter::Int,
+                     ftol::T = T(1.e-2)
                ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
      spline = _prepare_approximation(Matrix(nodes'), Matrix(nodes_b'), kernel)
-     spline = _construct_approximation(spline, values, values_lb, values_ub, nit)
+     spline, nit_done = _construct_approximation(spline, values, values_lb, values_ub, maxiter, ftol)
      return spline
 end
 
@@ -634,7 +656,7 @@ end
 """
 `get_cond(nodes::Matrix{T}, kernel::RK = RK_H0()) where {T <: AbstractFloat, RK <: ReproducingKernel_0}`
 
-Get a value of the Gram matrix spectral condition number. It is obtained by means of the matrix SVD decomposition and requires ``O(N^3)`` operations.
+Get a value of the Gram matrix spectral condition number. It is obtained by means of the matrix SVD decomposition.
 # Arguments
 - `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space and
@@ -654,7 +676,7 @@ end
 """
 `get_cond(nodes::Matrix{T}, d_nodes::Matrix{T}, es::Matrix{T}, kernel::RK = RK_H1()) where {T <: AbstractFloat, RK <: ReproducingKernel_1}`
 
-Get a value of the Gram matrix spectral condition number. It is obtained by means of the matrix SVD decomposition and requires ``O(N^3)`` operations.
+Get a value of the Gram matrix spectral condition number. It is obtained by means of the matrix SVD decomposition.
 # Arguments
 - `nodes`: function value interpolation nodes.
            This should be an `n×n_1` matrix, where `n` is dimension of the sampled space and

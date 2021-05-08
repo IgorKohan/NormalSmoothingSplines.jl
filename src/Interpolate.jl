@@ -70,7 +70,7 @@ function _prepare_interpolation(nodes::Matrix{T},
                           nothing,
                           nothing,
                           cond,
-                          0
+                          -1
                          )
     return spline
 end
@@ -216,7 +216,7 @@ function _prepare_interpolation(nodes::Matrix{T},
                           nothing,
                           nothing,
                           cond,
-                          0
+                          -1
                          )
     return spline
 end
@@ -272,7 +272,7 @@ function _evaluate_interpolation(spline::NormalSpline{T, RK},
         error("Spline was not prepared.")
     end
     if isnothing(spline._mu)
-        error("Spline coefficients were not calculated.")
+        error("Spline was not constructed.")
     end
 
     if size(points, 1) != size(spline._nodes, 1)

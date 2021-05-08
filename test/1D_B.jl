@@ -16,7 +16,7 @@
         u_lb = [ 0., 2., 0.]
         points = [0., 1., 2., 3., 4.]
 
-        spl = approximate(x, u, x_b, u_lb, u_ub, 100, RK_H0(0.1))
+        spl = approximate(x, u, x_b, u_lb, u_ub, RK_H0(0.1), 100)
         res = evaluate(spl, points)
         res_rounded = round.(res; digits=3)
         @test res_rounded ≈ [0.967, 1.0, 2.0, 3.0, 10.0]
@@ -31,7 +31,7 @@
         u_lb = [0., 0., 0., 0., 0., 0., 0., 0.]
         points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
 
-        spl = approximate(x, u, x_b, u_lb, u_ub, 100, RK_H0(0.1))
+        spl = approximate(x, u, x_b, u_lb, u_ub, RK_H0(0.1), 100)
         res = evaluate(spl, points)
         res_rounded = round.(res; digits=3)
         @test res_rounded ≈ [0.0, 0.1, 0.55, 1.0, 5.5, 10.0, 5.5, 1.0, 0.55, 0.1, -0.0]
@@ -51,7 +51,7 @@
         u_lb = [0., 0., 10., 0., 0., 0., 0., -Inf]
         points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
 
-        spl = approximate(x_b, u_lb, u_ub, 100, RK_H0(0.1))
+        spl = approximate(x_b, u_lb, u_ub, RK_H0(0.1), 100)
         res = evaluate(spl, points)
         res_rounded = round.(res; digits=2)
         @test res_rounded ≈ [0.98, 0.99, 1.0, 10.0, 7.75, 5.5, 3.25, 1.0, 0.55, 0.1, 0.1]
@@ -87,7 +87,7 @@
          u_lb = [0., 0., 0., 0., 0., 0., 0., 0.]
          points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
 
-         spl = approximate(x, u, x_b, u_lb, u_ub, 100, RK_H1(0.1))
+         spl = approximate(x, u, x_b, u_lb, u_ub, RK_H1(0.1), 100)
          res = evaluate(spl, points)
          res_rounded = round.(res; digits=3)
          @test res_rounded ≈ [0.0, 0.039, 0.0, 1.0, 6.321, 10.0, 6.321, 1.0, 0.0, 0.039, 0.0]
@@ -110,7 +110,7 @@
          u_lb = [0., 0., 0., 0., 0., 0., 0., -Inf]
          points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
 
-         spl = approximate(x, u, x_b, u_lb, u_ub, 100, RK_H1(0.1))
+         spl = approximate(x, u, x_b, u_lb, u_ub, RK_H1(0.1), 100)
          res = evaluate(spl, points)
          res_rounded = round.(res; digits=3)
          @test res_rounded ≈ [-0.0, 0.0, 1.0, 4.821, 9.028, 10.0, 5.77, 1.0, -0.0, -0.009, 0.0]
@@ -124,7 +124,7 @@
         u_lb = [0., 0., 10., 0., 0., 0., 0., -Inf]
         points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
 
-        spl = approximate(x_b, u_lb, u_ub, 100, RK_H1(0.1))
+        spl = approximate(x_b, u_lb, u_ub, RK_H1(0.1), 100)
         res = evaluate(spl, points)
         res_rounded = round.(res; digits=3)
         @test res_rounded ≈[1.691, -0.0, 1.0, 10.0, 10.0, 6.622, 3.343, 1.0, 0.0, -0.69, -1.362]
@@ -177,7 +177,7 @@
         u_lb = [ 0., 2., 0.]
         points = [0., 1., 2., 3., 4.]
 
-        spl = approximate(x, u, x_b, u_lb, u_ub, 100, RK_H2(0.1))
+        spl = approximate(x, u, x_b, u_lb, u_ub, RK_H2(0.1), 100)
         res = evaluate(spl, points)
         res_rounded = round.(res; digits=3)
         @test res_rounded ≈ [-2.263, 1.0, 2.0, 3.0, 10.0]
@@ -192,7 +192,7 @@
         u_lb = [0., 0., 0., 0., 0., 0., 0., 0.]
         points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
 
-        spl = approximate(x, u, x_b, u_lb, u_ub, 100, RK_H2(0.1))
+        spl = approximate(x, u, x_b, u_lb, u_ub, RK_H2(0.1), 100)
         res = evaluate(spl, points)
         res_rounded = round.(res; digits=3)
         @test res_rounded ≈ [-0.0, 0.1, -0.0, 1.0, 6.298, 10.0, 6.298, 1.0, -0.0, 0.1, 0.0]
@@ -205,7 +205,7 @@
         u_lb = [0., 0., 10., 0., 0., 0., 0., -Inf]
         points = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]
 
-        spl = approximate(x_b, u_lb, u_ub, 100, RK_H2(0.1))
+        spl = approximate(x_b, u_lb, u_ub, RK_H2(0.1), 100)
         res = evaluate(spl, points)
         res_rounded = round.(res; digits=2)
         @test res_rounded ≈ [14.75, 0.0, 1.0, 10.0, 10.0, 4.45, 0.83, 0.0, 0.14, 0.1, -0.35]

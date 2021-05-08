@@ -119,7 +119,7 @@ function _prepare_approximation(nodes::Union{Matrix{T}, Nothing},
                            nothing,
                            nothing,
                            cond,
-                           0
+                           -1
                           )
      return spline
 end
@@ -127,7 +127,8 @@ end
 function _construct_approximation(spline::NormalSpline{T, RK},
                                   values_lb::Vector{T},
                                   values_ub::Vector{T},
-                                  nit::Int,
+                                  maxiter::Int,
+                                  ftol::T,
                                   cleanup::Bool = false
                                  ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
 
@@ -135,15 +136,16 @@ function _construct_approximation(spline::NormalSpline{T, RK},
          error("Spline object is not correctly prepared ('spline._nodes' is not empty).")
     end
 
-    spline = _construct_approximation(spline, T[], values_lb, values_ub, nit, cleanup)
-    return spline
+    spline, nit_done = _construct_approximation(spline, T[], values_lb, values_ub, maxiter, ftol, cleanup)
+    return spline, nit_done
 end
 
 function _construct_approximation(spline::NormalSpline{T, RK},
                                   values::Vector{T},
                                   values_lb::Vector{T},
                                   values_ub::Vector{T},
-                                  nit::Int,
+                                  maxiter::Int,
+                                  ftol::T,
                                   cleanup::Bool = false
                                  ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
 
@@ -153,8 +155,6 @@ function _construct_approximation(spline::NormalSpline{T, RK},
     if isnothing(spline._nodes_b)
         error("Spline object is not correctly prepared ('spline._nodes_b' is empty).")
     end
-
-# TODO ub > lb
 
     m1 = 0
     if !isnothing(spline._nodes)
@@ -170,6 +170,10 @@ function _construct_approximation(spline::NormalSpline{T, RK},
     end
     if length(values_ub) != m2
         error("Number of 'values_ub' does not correspond to the number of approximating nodes.")
+    end
+
+    if length(values_ub[values_ub .< values_lb]) > 0
+        error("Incorrect bounds: 'values_ub' are less than 'values_lb'.")
     end
 
     if isnothing(spline._chol)
@@ -238,12 +242,12 @@ function _construct_approximation(spline::NormalSpline{T, RK},
                           mu,
                           nothing,
                           spline._cond,
-                          0
+                          -1
                          )
 
     eps = T(1.e-10)
-    spline = _qp(spline, Int[], nit, eps, cleanup)
-    return spline
+    spline, nit_done = _qp(spline, Int[], maxiter, ftol, eps, cleanup)
+    return spline, nit_done
 end
 
 ###################
@@ -280,7 +284,11 @@ function _evaluate_approximation(spline::NormalSpline{T, RK}, points::Matrix{T},
         error("Spline was not prepared.")
     end
     if isnothing(spline._mu)
-        error("Spline coefficients were not calculated.")
+        error("Spline was not constructed.")
+    end
+
+    if isnothing(spline._ier < 0)
+        error("Spline coefficients are not calculated.")
     end
 
     if size(points, 1) != size(spline._nodes_b, 1)
@@ -311,7 +319,7 @@ function _evaluate_approximation(spline::NormalSpline{T, RK}, points::Matrix{T},
     spline_values = Vector{T}(undef, m)
     h_values = Vector{T}(undef, n_1)
 
-    if spline._iter >= 0 # iteration limit reached
+    if spline._ier != 0 #  optimal solution not found
 
         h_values_b = Vector{T}(undef, n_1_b)
         @inbounds for p = 1:m
@@ -327,7 +335,7 @@ function _evaluate_approximation(spline::NormalSpline{T, RK}, points::Matrix{T},
                 spline_values[p] = sum(spline._mu .* [h_values_b; -h_values_b])
             end
         end
-    else # solution found
+    else # optimal solution found
         ak = spline._active[spline._active .!= 0]
         nak = length(ak)
         h_values_b = Vector{T}(undef, nak)
@@ -356,7 +364,7 @@ function _evaluate_approximation(spline::NormalSpline{T, RK}, points::Matrix{T},
             end
             spline_values[p] += sum(mu_b .* h_values_b)
         end
-    end # if spline._iter >= 0
+    end # if spline._ier != 0
 
     return spline_values
 end

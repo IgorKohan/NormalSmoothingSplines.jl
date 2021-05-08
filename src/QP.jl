@@ -1,6 +1,8 @@
 function _qp(spline::NormalSpline{T, RK},
              active::Vector{Int},
-             nit::Int, tol::T,
+             maxiter::Int,
+             ftol::T = T(1.e-2),
+             precision::T = T(1.e-10),
              cleanup::Bool = false
             ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
 
@@ -63,7 +65,7 @@ function _qp(spline::NormalSpline{T, RK},
     nit_done = 0
     nit_fac = 0
 #
-    @inbounds for it = 1:nit
+    @inbounds for it = 1:maxiter
         nit_done += 1
         nit_fac += 1
 
@@ -93,14 +95,14 @@ function _qp(spline::NormalSpline{T, RK},
 
         if nak > 0
 #  Calculating Gram matrix factorization and lambda
-            if it == 1 || nak <= 10
+            if it == 1 || nak <= 1
                 f_add = false
             end
-            if it == 1 || (i_del != (nak + 1) && i_del <= (m1 + 10))
+            if it == 1 || (i_del != (nak + 1) && i_del <= (m1 + 1))
                 f_del = false
             end
 
-            if nit_fac > n / 2 || nit_fac > nit / 2
+            if nit_fac > n / 2 || nit_fac > maxiter / 2
                 f_add = false
                 f_del = false
                 nit_fac = 0
@@ -195,8 +197,6 @@ function _qp(spline::NormalSpline{T, RK},
                         for k = l:nakp1
                             g1 = mat.L[k, l-1]
                             g2 = mat.L[k, l]
-                            a1 =  c * g1 + s * g2
-                            a2 = -s * g1 + c * g2
                             mat.factors[k, l-1] = c * g1 + s * g2
                             mat.factors[k, l] = -s * g1 + c * g2
                             mat.factors[l-1, k] = mat.factors[k, l-1]
@@ -363,7 +363,7 @@ function _qp(spline::NormalSpline{T, RK},
             i_del = 0
             @inbounds for i = m1p1:nak
                 ii = ak[i]
-                if lambda[ii] < T(tol)
+                if lambda[ii] < T(precision)
                     continue #.. for i = 1:nak
                 end
                 if i > i_del
@@ -374,7 +374,7 @@ function _qp(spline::NormalSpline{T, RK},
             f_opt = true
             @inbounds for i = m1p1:nak
                   ii = ak[i]
-                  if lambda[ii] < T(tol)
+                  if lambda[ii] < T(precision)
                       continue #.. for i = 1:nak
                   end
                   if i != i_del
@@ -433,7 +433,7 @@ function _qp(spline::NormalSpline{T, RK},
                 s += mu[j] * si * sj * spline._gram[ii, jj]
             end #.. for j = 1:n
 
-            if eik > T(tol)
+            if eik > T(precision)
                 ii = pk[i]
                 if abs(b[ii]) != Inf
                     tik = (b[ii] - s) / eik  # tik >≈ 0 here
@@ -445,10 +445,10 @@ function _qp(spline::NormalSpline{T, RK},
             end
         end #.. for i = 1:npk
 #.. Calculating t_min, i_min
-        if t_min < T(tol)  # fixing the round-off error
+        if t_min < T(precision)  # fixing the round-off error
             t_min = T(0.)
         end
-        if t_min >= T(0.) && t_min < (T(1.) + tol) # the projection is not feasible
+        if t_min >= T(0.) && t_min < (T(1.) + precision) # the projection is not feasible
             @inbounds for i = 1:n
                 mu[i] += t_min * (lambda[i] - mu[i])
             end
@@ -484,7 +484,7 @@ function _qp(spline::NormalSpline{T, RK},
             i_del = 0
             @inbounds for i = m1p1:nak
                 ii = ak[i]
-                if lambda[ii] < T(tol)
+                if lambda[ii] < T(precision)
                     continue #.. for i = 1:nak
                 end
                 if i > i_del
@@ -495,7 +495,7 @@ function _qp(spline::NormalSpline{T, RK},
             f_opt = true
             @inbounds for i = m1p1:nak
                   ii = ak[i]
-                  if lambda[ii] < T(tol)
+                  if lambda[ii] < T(precision)
                       continue #.. for i = 1:nak
                   end
                   if i != i_del
@@ -520,9 +520,20 @@ function _qp(spline::NormalSpline{T, RK},
                 break #..Main cycle
             end
 
-        end #.. t_min < (T(1.) + tol)
+        end #.. if t_min >= T(0.) && t_min < (T(1.) + precision)
 
     end #..Main cycle
+
+    ier = -1
+    if f_opt
+        ier = 0
+    else
+        if nit_done == maxiter
+            ier = 2
+        else
+            ier = 1 # exit by small goal function change
+        end
+    end
 
     active = zeros(Int, m2)
     k = 0
@@ -556,7 +567,7 @@ function _qp(spline::NormalSpline{T, RK},
                   mu,
                   active,
                   spline._cond,
-                  f_opt ? -nit_done : nit_done
+                  ier
                  )
 
     if logging
@@ -623,5 +634,5 @@ function _qp(spline::NormalSpline{T, RK},
         end #io
     end # logging
 
-    return spl
+    return spl, nit_done
 end
