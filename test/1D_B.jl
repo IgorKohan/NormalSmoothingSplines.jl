@@ -35,7 +35,7 @@
         res = evaluate(spl, points)
         res_rounded = round.(res; digits=3)
         @test res_rounded ≈ [0.0, 0.1, 0.55, 1.0, 5.5, 10.0, 5.5, 1.0, 0.55, 0.1, -0.0]
-        @test issetequal(spl._active, [8, 1, 6, 3, 0, 0, 0, 0])
+        @test issetequal(spl._active, [8, 1, 6, 3])
         cond = estimate_cond(spl)
         @test cond ≈ 10000.0
 
@@ -55,7 +55,7 @@
         res = evaluate(spl, points)
         res_rounded = round.(res; digits=2)
         @test res_rounded ≈ [0.98, 0.99, 1.0, 10.0, 7.75, 5.5, 3.25, 1.0, 0.55, 0.1, 0.1]
-        @test issetequal(spl._active, [-3, 2, 6, 8, 0, 0, 0, 0])
+        @test issetequal(spl._active, [-3, 2, 6, 8])
         cond = estimate_cond(spl)
         @test cond ≈ 1000.0
 
@@ -91,7 +91,7 @@
          res = evaluate(spl, points)
          res_rounded = round.(res; digits=3)
          @test res_rounded ≈ [0.0, 0.039, 0.0, 1.0, 6.321, 10.0, 6.321, 1.0, 0.0, 0.039, 0.0]
-         @test issetequal(spl._active, [6, 3, -2, -7, 0, 0, 0, 0])
+         @test issetequal(spl._active, [6, 3, -2, -7])
          cond = estimate_cond(spl)
          @test cond ≈ 1.0e7
 
@@ -114,7 +114,7 @@
          res = evaluate(spl, points)
          res_rounded = round.(res; digits=3)
          @test res_rounded ≈ [-0.0, 0.0, 1.0, 4.821, 9.028, 10.0, 5.77, 1.0, -0.0, -0.009, 0.0]
-         @test issetequal(spl._active, [6, 2, -7, -1, 0, 0, 0, 0])
+         @test issetequal(spl._active, [6, 2, -7, -1])
          cond = estimate_cond(spl)
          @test cond ≈ 1.0e7
 
@@ -128,7 +128,7 @@
         res = evaluate(spl, points)
         res_rounded = round.(res; digits=3)
         @test res_rounded ≈[1.691, -0.0, 1.0, 10.0, 10.0, 6.622, 3.343, 1.0, 0.0, -0.69, -1.362]
-        @test issetequal(spl._active, [-3, 2, 6, -7, -1, 4, 0, 0])
+        @test issetequal(spl._active, [-3, 2, 6, -7, -1, 4])
         cond = estimate_cond(spl)
         @test cond ≈ 1.0e6
 
@@ -196,7 +196,7 @@
         res = evaluate(spl, points)
         res_rounded = round.(res; digits=3)
         @test res_rounded ≈ [-0.0, 0.1, -0.0, 1.0, 6.298, 10.0, 6.298, 1.0, -0.0, 0.1, 0.0]
-        @test issetequal(spl._active, [1, 8, 6, 3, -2, -7, 0, 0])
+        @test issetequal(spl._active, [1, 8, 6, 3, -2, -7])
         cond = estimate_cond(spl)
         @test cond ≈ 1.0e12
 ##
@@ -209,7 +209,7 @@
         res = evaluate(spl, points)
         res_rounded = round.(res; digits=2)
         @test res_rounded ≈ [14.75, 0.0, 1.0, 10.0, 10.0, 4.45, 0.83, 0.0, 0.14, 0.1, -0.35]
-        @test issetequal(spl._active, [-3, 2, -1, 4, 8, -6, 0, 0])
+        @test issetequal(spl._active, [-3, 2, -1, 4, 8, -6])
         cond = estimate_cond(spl)
         @test cond ≈ 1.0e10
 

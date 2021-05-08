@@ -1,7 +1,7 @@
 function _qp(spline::NormalSpline{T, RK},
-             active::Vector{Int},
+             active::Vector{Int}, # active inequality constraints at initial point
              maxiter::Int,
-             ftol::T = T(1.e-2),
+             ftol::T,
              precision::T = T(1.e-10),
              cleanup::Bool = false
             ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
@@ -35,7 +35,7 @@ function _qp(spline::NormalSpline{T, RK},
     m = m1 + m2
     n = m1 + m2 + m2
 
-    nak = m1
+    nak = m1 #COH TODO active
     ak = zeros(Int, m)
     @inbounds for j = 1:nak
         ak[j] = j
@@ -95,10 +95,10 @@ function _qp(spline::NormalSpline{T, RK},
 
         if nak > 0
 #  Calculating Gram matrix factorization and lambda
-            if it == 1 || nak <= 1
+            if it == 1 || nak <= 5
                 f_add = false
             end
-            if it == 1 || (i_del != (nak + 1) && i_del <= (m1 + 1))
+            if it == 1 || (i_del != (nak + 1) && i_del <= (m1 + 5))
                 f_del = false
             end
 
@@ -531,19 +531,19 @@ function _qp(spline::NormalSpline{T, RK},
         if nit_done == maxiter
             ier = 2
         else
-            ier = 1 # exit by small goal function change
+            ier = 1 # exit by small spline norm change
         end
     end
 
-    active = zeros(Int, m2)
+    _active = zeros(Int, nak - m1)
     k = 0
     @inbounds for i = m1p1:nak
         ii = ak[i]
         k += 1
-        active[k] = ii - m1
-        if active[k] > m2
-            active[k] -= m2
-            active[k] = -active[k]
+        _active[k] = ii - m1
+        if _active[k] > m2
+            _active[k] -= m2
+            _active[k] = -_active[k]
         end
     end
 
@@ -565,7 +565,7 @@ function _qp(spline::NormalSpline{T, RK},
                   cleanup ? nothing : spline._gram,
                   cleanup ? nothing : mat,
                   mu,
-                  active,
+                  _active,
                   spline._cond,
                   ier
                  )

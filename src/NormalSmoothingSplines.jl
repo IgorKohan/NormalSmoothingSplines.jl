@@ -155,8 +155,7 @@ completely initializing the `NormalSpline` object.
 - `values_lb`: function lower bound values at approximation nodes
 - `values_ub`: function upper bound values at approximation nodes
 - `maxiter`: Maximum allowed number of iterations.
-- `ftol`: convergence tolerance. The iteration stops when relative spline norm
-          change is smaller than ftol.
+- `ftol`: convergence tolerance. The iteration stops when relative spline norm change is smaller than ftol.
 
 Return: constructed `NormalSpline` object and the number of QP algorithm iterations done.
 """
@@ -183,8 +182,7 @@ completely initializing the `NormalSpline` object.
 - `values_lb`: function lower bound values at approximation nodes
 - `values_ub`: function upper bound values at approximation nodes
 - `maxiter`: Maximum allowed number of iterations.
-- `ftol`: convergence tolerance. The iteration stops when relative spline norm
-          change is smaller than ftol.
+- `ftol`: convergence tolerance. The iteration stops when relative spline norm change is smaller than ftol.
 
 Return: constructed `NormalSpline` object and the number of QP algorithm iterations done.
 """
@@ -216,8 +214,7 @@ Prepare and construct the approximating normal spline.
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
 - `maxiter`: Maximum allowed number of iterations.
-- `ftol`: convergence tolerance. The iteration stops when relative spline norm
-          change is smaller than ftol.
+- `ftol`: convergence tolerance. The iteration stops when relative spline norm change is smaller than ftol.
 
 Return: constructed `NormalSpline` object.
 """
@@ -255,8 +252,7 @@ Prepare and construct the approximating normal spline.
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
 - `maxiter`: Maximum allowed number of iterations.
-- `ftol`: convergence tolerance. The iteration stops when relative spline norm
-          change is smaller than ftol.
+- `ftol`: convergence tolerance. The iteration stops when relative spline norm change is smaller than ftol.
 
 Return: constructed `NormalSpline` object.
 """
@@ -496,8 +492,7 @@ Prepare and construct the 1D approximating normal spline.
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
 - `maxiter`: Maximum allowed number of iterations.
-- `ftol`: convergence tolerance. The iteration stops when relative spline norm
-          change is smaller than ftol.
+- `ftol`: convergence tolerance. The iteration stops when relative spline norm change is smaller than ftol.
 
 Return: constructed `NormalSpline` object.
 """
@@ -532,8 +527,7 @@ Prepare and construct the 1D approximating normal spline.
               `RK_H1` if the spline is constructing as a differentiable function,
               `RK_H2` if the spline is constructing as a twice differentiable function.
 - `maxiter`: Maximum allowed number of iterations.
-- `ftol`: convergence tolerance. The iteration stops when relative spline norm
-          change is smaller than ftol.
+- `ftol`: convergence tolerance. The iteration stops when relative spline norm change is smaller than ftol.
 
 Return: constructed `NormalSpline` object.
 """

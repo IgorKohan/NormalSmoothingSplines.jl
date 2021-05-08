@@ -336,8 +336,7 @@ function _evaluate_approximation(spline::NormalSpline{T, RK}, points::Matrix{T},
             end
         end
     else # optimal solution found
-        ak = spline._active[spline._active .!= 0]
-        nak = length(ak)
+        nak = length(spline._active)
         h_values_b = Vector{T}(undef, nak)
         mu_b = Vector{T}(undef, nak)
         @inbounds for p = 1:m
@@ -350,7 +349,7 @@ function _evaluate_approximation(spline::NormalSpline{T, RK}, points::Matrix{T},
             end
 
             for i = 1:nak
-                ii = ak[i]
+                ii = spline._active[i]
                 if ii > 0
                     mu_b[i] = spline._mu[ii+n_1]
                     h_values_b[i] = _rk(spline._kernel, pts[:,p], spline._nodes_b[:,ii])
