@@ -69,36 +69,16 @@ function _qp(spline::NormalSpline{T, RK},
         nit_done += 1
         nit_fac += 1
 
-        if logging
-            open(path,"a") do io
-                println(io,"\r\nIteration:", it)
-                if it > 1 && f_add
-                    i_add = ak[nak]
-                    println(io,"\r\nConstraint added ($i_add).")
-                end
-                if it > 1 && f_del
-                    pk_del = pk[npk]
-                    println(io,"\r\nConstraint released ($i_del $pk_del).")
-                end
-                nab = length(ak[ak .> 0]) - m1
-                nlb = length(ak[ak .> m])
-                println(io,"\r\nActive constraints:", (nak-m1))
-                println(io,"\r\nActive upper constraints:", (nab-nlb))
-                println(io,"\r\nActive lower constraints:", nlb)
-                println(io,"\r\nInactive constraints:", npk)
-            end
-        end
-
         @inbounds for i = 1:n
             lambda[i] = T(0.)
         end
 
         if nak > 0
 #  Calculating Gram matrix factorization and lambda
-            if it == 1 || nak <= 5
+            if it == 1 || nak <= 1
                 f_add = false
             end
-            if it == 1 || (i_del != (nak + 1) && i_del <= (m1 + 5))
+            if it == 1 || (i_del != (nak + 1) && i_del <= (m1 + 1))
                 f_del = false
             end
 
@@ -521,6 +501,34 @@ function _qp(spline::NormalSpline{T, RK},
             end
 
         end #.. if t_min >= T(0.) && t_min < (T(1.) + precision)
+
+        if logging
+            open(path,"a") do io
+                println(io,"\r\nIteration:", it)
+                if it > 1 && f_add
+                    i_add = ak[nak]
+                    println(io,"\r\nConstraint added ($i_add).")
+                end
+                nab = length(ak[ak .> 0]) - m1
+                nlb = length(ak[ak .> m])
+                pk_del = 0
+                if it > 1 && f_del
+                    pk_del = pk[npk]
+                    println(io,"\r\nConstraint released ($i_del $pk_del).")
+                    println(io,"\r\nActive constraints:", (nak-m1+1))
+                    if pk_del > m
+                        println(io,"\r\nActive upper constraints:", (nab-nlb))
+                        println(io,"\r\nActive lower constraints:", nlb+1)
+                    else
+                        println(io,"\r\nActive upper constraints:", (nab-nlb+1))
+                        println(io,"\r\nActive lower constraints:", nlb)
+                    end
+                else
+                    println(io,"\r\nActive constraints:", (nak-m1))
+                end
+                println(io,"\r\nInactive constraints:", npk)
+            end
+        end
 
     end #..Main cycle
 
