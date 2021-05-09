@@ -163,7 +163,7 @@ function construct_approximation(spline::NormalSpline{T, RK},
                                  values_lb::Vector{T},
                                  values_ub::Vector{T},
                                  maxiter::Int,
-                                 ftol::T = T(1.e-2)
+                                 ftol::T = T(1.e-3)
                                 ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
     spline, nit_done = _construct_approximation(spline, values_lb, values_ub, maxiter, ftol)
     return spline, nit_done
@@ -191,7 +191,7 @@ function construct_approximation(spline::NormalSpline{T, RK},
                                  values_lb::Vector{T},
                                  values_ub::Vector{T},
                                  maxiter::Int,
-                                 ftol::T = T(1.e-2)
+                                 ftol::T = T(1.e-3)
                                 ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
     spline, nit_done = _construct_approximation(spline, values, values_lb, values_ub, maxiter, ftol)
     return spline, nit_done
@@ -223,7 +223,7 @@ function approximate(nodes_b::Matrix{T},
                      values_ub::Vector{T},
                      kernel::RK,
                      maxiter::Int,
-                     ftol::T = T(1.e-2)
+                     ftol::T = T(1.e-3)
                     ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
      spline = _prepare_approximation(nodes_b, kernel)
      spline, nit_done = _construct_approximation(spline, values_lb, values_ub, maxiter, ftol)
@@ -263,7 +263,7 @@ function approximate(nodes::Matrix{T},
                      values_ub::Vector{T},
                      kernel::RK,
                      maxiter::Int,
-                     ftol::T = T(1.e-2)
+                     ftol::T = T(1.e-3)
                     ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
      spline = _prepare_approximation(nodes, nodes_b, kernel)
      spline, nit_done = _construct_approximation(spline, values, values_lb, values_ub, maxiter, ftol)
@@ -501,7 +501,7 @@ function approximate(nodes_b::Vector{T},
                      values_ub::Vector{T},
                      kernel::RK,
                      maxiter::Int,
-                     ftol::T = T(1.e-2)
+                     ftol::T = T(1.e-3)
                ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
      spline = _prepare_approximation(Matrix(nodes_b'), kernel)
      spline, nit_done = _construct_approximation(spline, values_lb, values_ub, maxiter, ftol)
@@ -538,7 +538,7 @@ function approximate(nodes::Vector{T},
                      values_ub::Vector{T},
                      kernel::RK,
                      maxiter::Int,
-                     ftol::T = T(1.e-2)
+                     ftol::T = T(1.e-3)
                ) where {T <: AbstractFloat, RK <: ReproducingKernel_0}
      spline = _prepare_approximation(Matrix(nodes'), Matrix(nodes_b'), kernel)
      spline, nit_done = _construct_approximation(spline, values, values_lb, values_ub, maxiter, ftol)

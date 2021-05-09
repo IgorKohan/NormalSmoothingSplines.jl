@@ -172,9 +172,14 @@ function _construct_approximation(spline::NormalSpline{T, RK},
         error("Number of 'values_ub' does not correspond to the number of approximating nodes.")
     end
 
-    if length(values_ub[values_ub .< values_lb]) > 0
-        error("Incorrect bounds: 'values_ub' are less than 'values_lb'.")
-    end
+    @inbounds for i = 1:m2
+        if values_ub[i] < values_lb[i]
+            error("Incorrect bounds: 'values_ub[$i]' is less than 'values_lb[$i]'.")
+        end
+        if (values_ub[i] - values_lb[i]) <= sqrt(eps(T(1.0)))
+            error("Incorrect bounds: 'values_ub[$i]' is almost equal to 'values_lb[$i]'.")
+        end
+     end
 
     if isnothing(spline._chol)
         error("Gram matrix was not factorized.")
@@ -192,7 +197,12 @@ function _construct_approximation(spline::NormalSpline{T, RK},
         end
     end
 
-    values_b = mu = zeros(T, m2)
+    active = zeros(Int, m2)
+    # @inbounds for j = 1:m2
+    #     active[j] = 0
+    # end
+
+    values_b  = Vector{T}(undef, m2)
     incorrect_bounds::Bool = false
     @inbounds for i = 1:m2
         if abs(values_lb[i]) == Inf && abs(values_ub[i]) == Inf
@@ -245,8 +255,9 @@ function _construct_approximation(spline::NormalSpline{T, RK},
                           -1
                          )
 
-    eps = T(1.e-10)
-    spline, nit_done = _qp(spline, Int[], maxiter, ftol, eps, cleanup)
+    precision = T(1.e-10) # TODO change
+
+    spline, nit_done = _qp(spline, active, maxiter, ftol, precision, cleanup)
     return spline, nit_done
 end
 

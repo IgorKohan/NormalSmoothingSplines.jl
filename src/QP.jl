@@ -1,5 +1,5 @@
 function _qp(spline::NormalSpline{T, RK},
-             active::Vector{Int}, # active inequality constraints at initial point
+             active::Vector{Int}, # [1:m2] active inequality constraints at initial point
              maxiter::Int,
              ftol::T,
              precision::T = T(1.e-10),
@@ -35,10 +35,16 @@ function _qp(spline::NormalSpline{T, RK},
     m = m1 + m2
     n = m1 + m2 + m2
 
-    nak = m1 #COH TODO active
+    nak = m1
     ak = zeros(Int, m)
-    @inbounds for j = 1:nak
+    @inbounds for j = 1:m1
         ak[j] = j
+    end
+    @inbounds for j = 1:m2
+        if active[j] > 0
+            nak += 1
+            ak[nak] = m1 + j
+        end
     end
 
     pk = zeros(Int, m2pm2)
@@ -64,10 +70,24 @@ function _qp(spline::NormalSpline{T, RK},
     mat = nothing
     nit_done = 0
     nit_fac = 0
+    nit_stop = 0
+    ftol_tst = T(0.)
+    fk = T(0.)
+    fkp = T(0.)
 #
     @inbounds for it = 1:maxiter
+
+        if logging
+            open(path,"a") do io
+                println(io,"\r\nIteration:", it)
+                println(io,"\r\nActive inequality constraints:", (nak-m1))
+                println(io,"\r\nInactive inequality constraints:", npk)
+            end
+        end
+
         nit_done += 1
         nit_fac += 1
+        nit_stop += 1
 
         @inbounds for i = 1:n
             lambda[i] = T(0.)
@@ -75,10 +95,10 @@ function _qp(spline::NormalSpline{T, RK},
 
         if nak > 0
 #  Calculating Gram matrix factorization and lambda
-            if it == 1 || nak <= 1
+            if it == 1 || nak <= 3
                 f_add = false
             end
-            if it == 1 || (i_del != (nak + 1) && i_del <= (m1 + 1))
+            if it == 1 || (i_del != (nak + 1) && i_del <= (m1 + 3))
                 f_del = false
             end
 
@@ -184,7 +204,7 @@ function _qp(spline::NormalSpline{T, RK},
                         end
                     end # for t = 1:te
                     if rec_err
-                        break # Main cycle
+                        continue # Main cycle
                     end
 
                     k = 0
@@ -260,8 +280,8 @@ function _qp(spline::NormalSpline{T, RK},
 
                     # Going to full Gram matrix factorization.
                     f_add = false
-                    break # Main cycle
-                end
+                    continue # Main cycle
+                end # if chol_el > T(0.)
 
                 #  Calculating lambda
                 mat = Cholesky(chol, :U, 0)
@@ -282,58 +302,6 @@ function _qp(spline::NormalSpline{T, RK},
 
         end #if nak > 0
 #..Calculating Gram matrix factorization and lambda
-
-        if logging
-            open(path,"a") do io
-                 norm = T(0.)
-                 @inbounds for j = 1:m1
-                     for i = 1:m1
-                         norm += spline._gram[j,i]*mu[j]*mu[i]
-                     end
-                 end
-                 @inbounds for j = m1p1:m
-                     for i = m1p1:m
-                         norm += spline._gram[j,i]*(mu[j] - mu[j+m2])*(mu[i] - mu[i+m2])
-                     end
-                 end
-                 @inbounds for i = 1:m1
-                     for j = m1p1:m
-                         norm += T(2.) * spline._gram[i,j]*mu[i]*(mu[j] - mu[j+m2])
-                     end
-                 end
-                 norm = sqrt(norm)
-                 norm = round(norm; digits=0)
-                 println(io,"\r\nSpline norm:", norm)
-
-                 # println(io,"\r\nNumber of active inequality constraints:", nak-m1)
-                 # println(io,"\r\nActive inequality constraints:\r\n")
-                 # l_ak = copy(ak)
-                 # for i= m1p1:nak
-                 #     if l_ak[i] > m
-                 #        l_ak[i] -= m
-                 #        l_ak[i] = -l_ak[i]
-                 #     else
-                 #        l_ak[i] -= m1
-                 #     end
-                 # end
-                 # if nak > m1
-                 #     println(io, l_ak[m1p1:end])
-                 # end
-                 # println(io,"\r\nNumber of inactive inequality constraints:", npk)
-                 # println(io,"\r\nInactive inequality constraints:\r\n")
-                 # l_pk = copy(pk)
-                 # for i= 1:npk
-                 #     if l_pk[i] > m
-                 #        l_pk[i] -= m
-                 #        l_pk[i] = -l_pk[i]
-                 #     else
-                 #        l_pk[i] -= m1
-                 #     end
-                 # end
-                 # println(io, l_pk)
-                 println(io, "\r\n")
-            end # io
-        end # logging
 
         if nak == m
             @inbounds for i = 1:n
@@ -373,7 +341,7 @@ function _qp(spline::NormalSpline{T, RK},
                   ak[nak] = 0
                   nak -= 1
                   break     #.. for i = 1:nak
-            end #.. for i = 1:nak
+            end #.. for i = m1p1:nak
 
             if f_opt == true
                 break #..Main cycle
@@ -504,31 +472,60 @@ function _qp(spline::NormalSpline{T, RK},
 
         if logging
             open(path,"a") do io
-                println(io,"\r\nIteration:", it)
                 if it > 1 && f_add
                     i_add = ak[nak]
                     println(io,"\r\nConstraint added ($i_add).")
                 end
-                nab = length(ak[ak .> 0]) - m1
-                nlb = length(ak[ak .> m])
-                pk_del = 0
-                if it > 1 && f_del
+                if  f_del
                     pk_del = pk[npk]
                     println(io,"\r\nConstraint released ($i_del $pk_del).")
-                    println(io,"\r\nActive constraints:", (nak-m1+1))
-                    if pk_del > m
-                        println(io,"\r\nActive upper constraints:", (nab-nlb))
-                        println(io,"\r\nActive lower constraints:", nlb+1)
-                    else
-                        println(io,"\r\nActive upper constraints:", (nab-nlb+1))
-                        println(io,"\r\nActive lower constraints:", nlb)
-                    end
-                else
-                    println(io,"\r\nActive constraints:", (nak-m1))
                 end
-                println(io,"\r\nInactive constraints:", npk)
             end
-        end
+        end # if logging
+
+        # Calculating spline norm
+        norm = T(0.)
+        if logging || (it == 1) || (nit_stop >= m/3)
+            @inbounds for j = 1:m1
+                for i = 1:m1
+                    norm += spline._gram[j,i]*mu[j]*mu[i]
+                end
+            end
+            @inbounds for j = m1p1:m
+                for i = m1p1:m
+                    norm += spline._gram[j,i]*(mu[j] - mu[j+m2])*(mu[i] - mu[i+m2])
+                end
+            end
+            @inbounds for i = 1:m1
+                for j = m1p1:m
+                    norm += T(2.) * spline._gram[i,j]*mu[i]*(mu[j] - mu[j+m2])
+                end
+            end
+            norm = sqrt(norm)
+
+            if logging
+                open(path,"a") do io
+                     norm = round(norm; digits=0)
+                     println(io,"\r\nSpline norm: $norm")
+                     println(io,"\r\n")
+                end # io
+            end # logging
+
+            if fk == T(0.)
+                fk = norm
+            end
+        end # logging || (it == 1) || (nit_stop >= m/3)
+#.. Calculating spline norm
+
+        if nit_stop >= m/3
+            fkp = norm
+            ftol_tst = abs(fk - fkp)/max(fk, T(1.))
+            if ftol_tst < ftol
+                break  # Main cycle
+            end
+            fk = norm
+            nit_stop = 0
+        end # if nit_stop >= m/3
 
     end #..Main cycle
 
@@ -580,10 +577,15 @@ function _qp(spline::NormalSpline{T, RK},
 
     if logging
         open(path,"a") do io
+             println(io,"\r\n")
              if(f_opt)
                  println(io,"\r\nSolution found.\r\n")
              else
-                 println(io,"\r\nLimit of iterations.\r\n")
+                 if nit_done == maxiter
+                     println(io,"\r\nExit by limit of iterations: $maxiter\r\n")
+                 else
+                     println(io,"\r\nExit by small spline norm change: $ftol_tst\r\n")
+                 end
              end
 
              norm = T(0.)
@@ -611,32 +613,6 @@ function _qp(spline::NormalSpline{T, RK},
              println(io,"\r\nActive lower constraints:", nlb)
              println(io,"\r\nInactive constraints:", npk)
              println(io,"\r\nSpline norm:", norm)
-
-             # println(io,"\r\nNumber of active inequality constraints:", nak-m1)
-             # println(io,"\r\nActive inequality constraints:\r\n")
-             # l_ak = copy(ak)
-             # for i= m1p1:nak
-             #     if l_ak[i] > m
-             #        l_ak[i] -= m
-             #        l_ak[i] = -l_ak[i]
-             #     else
-             #        l_ak[i] -= m1
-             #     end
-             # end
-             # println(io, l_ak[m1p1:end])
-             # println(io,"\r\nNumber of inactive inequality constraints:", npk)
-             # println(io,"\r\nInactive inequality constraints:\r\n")
-             # l_pk = copy(pk)
-             # for i= 1:npk
-             #     if l_pk[i] > m
-             #        l_pk[i] -= m
-             #        l_pk[i] = -l_pk[i]
-             #     else
-             #        l_pk[i] -= m1
-             #     end
-             # end
-             # println(io, l_pk)
-             # println(io, "\r\n")
 
              println(io,"\r\n_qp completed.\r\n")
         end #io
