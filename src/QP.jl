@@ -1,5 +1,5 @@
 function _qp(spline::NormalSpline{T, RK},
-             active::Vector{Int}, # [1:m2] active inequality constraints at initial point
+             active::Vector{Int},
              maxiter::Int,
              ftol::T,
              precision::T = T(1.e-10),
@@ -41,16 +41,29 @@ function _qp(spline::NormalSpline{T, RK},
         ak[j] = j
     end
     @inbounds for j = 1:m2
-        if active[j] > 0
+        if active[j] != 0
             nak += 1
-            ak[nak] = m1 + j
+            ak[nak] = active[j]
         end
     end
 
     pk = zeros(Int, m2pm2)
-    npk = m2pm2
-    @inbounds for j = 1:m2pm2
-        pk[j] = j + m1
+    npk = 0
+    @inbounds for j = 1:m2
+        if active[j] != 0
+            npk += 1
+            jj = active[j]
+            if jj > m
+                pk[npk] = j + m1
+            else
+                pk[npk] = j + m1 + m2
+            end
+        else
+            npk += 1
+            pk[npk] = j + m1
+            npk += 1
+            pk[npk] = j + m1 + m2
+        end
     end
 
     mu = zeros(T, n)
