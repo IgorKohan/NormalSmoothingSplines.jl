@@ -198,9 +198,6 @@ function _construct_approximation(spline::NormalSpline{T, RK},
     end
 
     active = zeros(Int, m2)
-    # @inbounds for j = 1:m2
-    #     active[j] = 0
-    # end
 
     values_b  = Vector{T}(undef, m2)
     incorrect_bounds::Bool = false

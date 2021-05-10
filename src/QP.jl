@@ -325,7 +325,7 @@ function _qp(spline::NormalSpline{T, RK},
             @inbounds for i = m1p1:nak
                 ii = ak[i]
                 if lambda[ii] < T(precision)
-                    continue #.. for i = 1:nak
+                    continue #.. for i = m1p1:nak
                 end
                 if i > i_del
                     i_del = i
@@ -336,7 +336,7 @@ function _qp(spline::NormalSpline{T, RK},
             @inbounds for i = m1p1:nak
                   ii = ak[i]
                   if lambda[ii] < T(precision)
-                      continue #.. for i = 1:nak
+                      continue #.. for i = m1p1:nak
                   end
                   if i != i_del
                       continue
@@ -353,7 +353,7 @@ function _qp(spline::NormalSpline{T, RK},
                   end
                   ak[nak] = 0
                   nak -= 1
-                  break     #.. for i = 1:nak
+                  break     #.. for i = m1p1:nak
             end #.. for i = m1p1:nak
 
             if f_opt == true
@@ -446,7 +446,7 @@ function _qp(spline::NormalSpline{T, RK},
             @inbounds for i = m1p1:nak
                 ii = ak[i]
                 if lambda[ii] < T(precision)
-                    continue #.. for i = 1:nak
+                    continue #.. for i = m1p1:nak
                 end
                 if i > i_del
                     i_del = i
@@ -457,7 +457,7 @@ function _qp(spline::NormalSpline{T, RK},
             @inbounds for i = m1p1:nak
                   ii = ak[i]
                   if lambda[ii] < T(precision)
-                      continue #.. for i = 1:nak
+                      continue #.. for i = m1p1:nak
                   end
                   if i != i_del
                       continue
@@ -474,7 +474,7 @@ function _qp(spline::NormalSpline{T, RK},
                   end
                   ak[nak] = 0
                   nak -= 1
-                  break     #.. for i = 1:nak
+                  break     #.. for i = m1p1:nak
             end #.. for i = 1:nak
 
             if f_opt == true
