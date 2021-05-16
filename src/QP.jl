@@ -1,5 +1,5 @@
 function _qp(spline::NormalSpline{T, RK},
-             active::Vector{Int},
+             ineq_active::Vector{Int},
              maxiter::Int,
              ftol::T,
              precision::T = T(1.e-10),
@@ -30,39 +30,50 @@ function _qp(spline::NormalSpline{T, RK},
         b = [spline._values_ub; -spline._values_lb]
     end
 
+    equalities = Set(collect(1:m1))
+
     m1p1 = m1 + 1
     m2pm2 = m2 + m2
     m = m1 + m2
     n = m1 + m2 + m2
 
-    nak = m1
     ak = zeros(Int, m)
-    @inbounds for j = 1:m1
-        ak[j] = j
-    end
-    @inbounds for j = 1:m2
-        if active[j] != 0
+    nak = 0
+    @inbounds for j = 1:m
+        if in(j, equalities)
             nak += 1
-            ak[nak] = active[j]
+            ak[nak] = j
+        end
+    end
+    @inbounds for j = 1:m
+        if in(j, equalities)
+            continue
+        end
+        if ineq_active[j] != 0
+            nak += 1
+            ak[nak] = ineq_active[j]
         end
     end
 
     pk = zeros(Int, m2pm2)
     npk = 0
-    @inbounds for j = 1:m2
-        if active[j] != 0
+    @inbounds for j = 1:m
+        if in(j, equalities)
+            continue
+        end
+        jj = ineq_active[j]
+        if jj != 0
             npk += 1
-            jj = active[j]
             if jj > m
-                pk[npk] = j + m1
+                pk[npk] = jj - m2
             else
-                pk[npk] = j + m1 + m2
+                pk[npk] = jj + m2
             end
         else
             npk += 1
-            pk[npk] = j + m1
+            pk[npk] = j
             npk += 1
-            pk[npk] = j + m1 + m2
+            pk[npk] = j + m2
         end
     end
 
@@ -322,7 +333,10 @@ function _qp(spline::NormalSpline{T, RK},
             end
 
             i_del = 0
-            @inbounds for i = m1p1:nak
+            @inbounds for i = 1:nak
+                if in(i, equalities)
+                    continue
+                end
                 ii = ak[i]
                 if lambda[ii] < T(precision)
                     continue #.. for i = m1p1:nak
@@ -333,7 +347,10 @@ function _qp(spline::NormalSpline{T, RK},
             end
 
             f_opt = true
-            @inbounds for i = m1p1:nak
+            @inbounds for i = 1:nak
+                  if in(i, equalities)
+                     continue
+                  end
                   ii = ak[i]
                   if lambda[ii] < T(precision)
                       continue #.. for i = m1p1:nak
@@ -443,7 +460,10 @@ function _qp(spline::NormalSpline{T, RK},
             end
 
             i_del = 0
-            @inbounds for i = m1p1:nak
+            @inbounds for i = 1:nak
+                if in(i, equalities)
+                   continue
+                end
                 ii = ak[i]
                 if lambda[ii] < T(precision)
                     continue #.. for i = m1p1:nak
@@ -454,7 +474,10 @@ function _qp(spline::NormalSpline{T, RK},
             end
 
             f_opt = true
-            @inbounds for i = m1p1:nak
+            @inbounds for i = 1:nak
+                  if in(i, equalities)
+                      continue
+                  end
                   ii = ak[i]
                   if lambda[ii] < T(precision)
                       continue #.. for i = m1p1:nak
@@ -499,18 +522,36 @@ function _qp(spline::NormalSpline{T, RK},
         # Calculating spline norm
         norm = T(0.)
         if logging || (it == 1) || (nit_stop >= m/3)
-            @inbounds for j = 1:m1
-                for i = 1:m1
+            @inbounds for j = 1:m
+                if !in(j, equalities)
+                   continue
+                end
+                for i = 1:m
+                    if !in(i, equalities)
+                       continue
+                    end
                     norm += spline._gram[j,i]*mu[j]*mu[i]
                 end
             end
-            @inbounds for j = m1p1:m
-                for i = m1p1:m
+            @inbounds for j = 1:m
+                if in(j, equalities)
+                   continue
+                end
+                for i = 1:m
+                    if in(i, equalities)
+                       continue
+                    end
                     norm += spline._gram[j,i]*(mu[j] - mu[j+m2])*(mu[i] - mu[i+m2])
                 end
             end
-            @inbounds for i = 1:m1
-                for j = m1p1:m
+            @inbounds for i = 1:m
+                if !in(i, equalities)
+                   continue
+                end
+                for j = 1:m
+                    if in(j, equalities)
+                       continue
+                    end
                     norm += T(2.) * spline._gram[i,j]*mu[i]*(mu[j] - mu[j+m2])
                 end
             end
@@ -602,18 +643,36 @@ function _qp(spline::NormalSpline{T, RK},
              end
 
              norm = T(0.)
-             @inbounds for j = 1:m1
-                 for i = 1:m1
+             @inbounds for j = 1:m
+                 if !in(j, equalities)
+                    continue
+                 end
+                 for i = 1:m
+                     if !in(i, equalities)
+                        continue
+                     end
                      norm += spline._gram[j,i]*mu[j]*mu[i]
                  end
              end
-             @inbounds for j = m1p1:m
-                 for i = m1p1:m
+             @inbounds for j = 1:m
+                 if in(j, equalities)
+                    continue
+                 end
+                 for i = 1:m
+                     if in(i, equalities)
+                        continue
+                     end
                      norm += spline._gram[j,i]*(mu[j] - mu[j+m2])*(mu[i] - mu[i+m2])
                  end
              end
-             @inbounds for i = 1:m1
-                 for j = m1p1:m
+             @inbounds for i = 1:m
+                 if !in(i, equalities)
+                    continue
+                 end
+                 for j = 1:m
+                     if in(j, equalities)
+                        continue
+                     end
                      norm += T(2.) * spline._gram[i,j]*mu[i]*(mu[j] - mu[j+m2])
                  end
              end
