@@ -197,7 +197,7 @@ function _construct_approximation(spline::NormalSpline{T, RK},
         end
     end
 
-    ineq_active = zeros(Int, (m1+m2))
+    ineq_active = zeros(Int, m2)
 
     values_b  = Vector{T}(undef, m2)
     incorrect_bounds::Bool = false
