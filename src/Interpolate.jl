@@ -304,7 +304,7 @@ function _evaluate_interpolation(spline::NormalSpline{T, RK},
     end
 
     if !isnothing(spline._d_nodes)
-        n_2 = size(d_nodes, 2)
+        n_2 = size(spline._d_nodes, 2)
         d_h_values = Vector{T}(undef, n_2)
         d_mu = spline._mu[(n_1 + 1):end]
         @inbounds for p = 1:m
